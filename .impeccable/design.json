@@ -1,0 +1,11 @@
+{
+  "name": "IndicEdge monochrome workspace",
+  "mode": "operate",
+  "tokens": {
+    "canvas": "#0b0b0b", "surface": "#101010", "raised": "#171717",
+    "ink": "#ededed", "muted": "#a3a3a3", "faint": "#858585",
+    "line": "#292929", "lineStrong": "#3e3e3e", "accent": "#e7e7e7",
+    "font": "Geist", "easeOut": "cubic-bezier(.23,1,.32,1)", "pressMs": 160, "entryMs": 220
+  },
+  "constraints": ["black minimalist", "reduced motion", "source stays in browser", "no fabricated metrics"]
+}

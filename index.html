@@ -1,213 +1,71 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-  <title>IndicEdge — AI Control Plane</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b0b0b">
+  <meta name="description" content="Turn everyday instructions into reusable workflows, with control over data and AI spending.">
+  <title>IndicEdge — Workflow workspace</title>
+  <link rel="icon" href="./assets/icons/stack.svg" type="image/svg+xml">
+  <link rel="preload" href="./assets/geist-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div id="authScreen" class="auth-screen">
-    <div class="auth-card">
-      <div class="brand">
-        <span class="brand-icon">IE</span>
-        <span>IndicEdge</span>
-      </div>
-
-      <p class="eyebrow">PRIVATE AI INFRASTRUCTURE</p>
-      <h1>Intelligence under control.</h1>
-      <p class="muted">
-        Sign in to your AI execution workspace.
-      </p>
-
-      <label>Email</label>
-      <input id="email" type="email"
-             placeholder="you@example.com">
-
-      <label>Password</label>
-      <input id="password" type="password"
-             placeholder="Your password">
-
-      <button id="loginBtn" class="primary">
-        Sign in
-      </button>
-
-      <button id="signupBtn" class="secondary">
-        Create account
-      </button>
-
-      <p id="authMessage" class="message"></p>
+  <a class="skip-link" href="#main">Skip to workspace</a>
+  <div class="shell">
+    <aside class="sidebar" aria-label="Workspace navigation">
+      <a class="brand" href="#workbench" aria-label="IndicEdge workbench"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>IndicEdge<span class="brand-period">.</span></a>
+      <button id="newWorkflow" class="button new-workflow"><img src="./assets/icons/plus.svg" alt="">New workflow</button>
+      <nav aria-label="Main">
+        <a class="nav active" href="#workbench" data-view="workbench" aria-current="page"><img src="./assets/icons/squares-four.svg" alt="">Workbench</a>
+        <a class="nav" href="#library" data-view="library"><img src="./assets/icons/stack.svg" alt="">Saved workflows<span id="libraryCount" class="nav-count">0</span></a>
+        <a class="nav" href="#sources" data-view="sources"><img src="./assets/icons/table.svg" alt="">Source data</a>
+        <a class="nav" href="#history" data-view="history"><img src="./assets/icons/clock-counter-clockwise.svg" alt="">Run history</a>
+        <a class="nav" href="#compute" data-view="compute"><img src="./assets/icons/cpu.svg" alt="">Compute &amp; receipts</a>
+      </nav>
+      <div class="sidebar-note"><img src="./assets/icons/shield-check.svg" alt=""><p>Your task. Your boundaries.<span>Review what leaves your workspace.</span></p></div>
+      <div class="sidebar-footer"><span class="avatar" aria-hidden="true">IE</span><div><strong id="identity">Workspace</strong><span id="modeLabel">Connecting…</span></div><button id="accountButton" class="icon-button" aria-label="Open account"><img src="./assets/icons/arrow-up-right.svg" alt=""></button></div>
+    </aside>
+    <div class="content-shell">
+      <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong id="viewTitle">Workbench</strong></div><div class="connection"><span id="connectionDot" class="connection-dot"></span><span id="connectionLabel">Connecting</span><button id="refreshStatus" class="icon-button" aria-label="Refresh connection"><img src="./assets/icons/arrow-clockwise.svg" alt=""></button></div></header>
+      <main id="main" tabindex="-1">
+        <p id="globalMessage" class="notice hidden" role="status" aria-live="polite"></p>
+        <section id="workbenchView" class="view" aria-labelledby="workbenchTitle">
+          <div class="page-heading"><div><h1 id="workbenchTitle">Make the everyday <span>repeatable.</span></h1><p>Describe the task. Review the rules. Run it your way.</p></div><span class="quiet-label">English · हिंदी · Hinglish</span></div>
+          <div class="workspace-grid">
+            <div class="work-column">
+              <section class="workbench" aria-labelledby="taskTitle">
+                <div class="section-top"><h2 id="taskTitle">What needs doing?</h2><span class="badge">Order follow-ups</span></div>
+                <label class="sr-only" for="instruction">Describe your order reminder task</label>
+                <textarea id="instruction" maxlength="1000" rows="3" placeholder="Find orders overdue by at least 5 days and prepare Hindi reminder drafts"></textarea>
+                <div class="task-bottom"><span>Understand once. Run on fresh data.</span><button id="understand" class="button primary">Review workflow<img src="./assets/icons/arrow-right.svg" alt=""></button></div>
+                <div class="examples"><span>Try</span><button class="text-button example" data-example="Find orders overdue by at least 5 days and prepare Hindi reminder drafts">Hindi reminders</button><button class="text-button example" data-example="Prepare English reminder drafts for orders overdue by at least 7 days">7-day follow-up</button></div>
+                <p id="intentMessage" class="inline-message" role="status"></p>
+              </section>
+              <section id="rulesPanel" class="rules-section" aria-labelledby="rulesTitle">
+                <div class="section-top"><h2 id="rulesTitle">Execution rules</h2><span id="planOrigin" class="muted small">Set directly · no model call</span></div>
+                <div class="rule-controls"><div><label for="days">Overdue by at least</label><div class="number-input"><input id="days" type="number" min="1" max="365" step="1" value="5"><span>days</span></div></div><div><label for="language">Draft language</label><select id="language"><option value="hi">Hindi / हिंदी</option><option value="en">English</option></select></div><div><label for="asOf">Evaluate as of (IST)</label><input id="asOf" type="date" required></div></div>
+                <div class="rule-summary"><img src="./assets/icons/check.svg" alt=""><p>Pending orders only. Prepare drafts for review.<span>No customer messages will be sent.</span></p></div><label class="checkbox-label summary-option"><input id="includeSummary" type="checkbox" checked>Include a summary of matched orders</label>
+              </section>
+              <section class="source-strip" aria-labelledby="sourceTitle"><div class="file-symbol"><img src="./assets/icons/file-csv.svg" alt=""></div><div class="source-info"><h2 id="sourceTitle">Example orders</h2><p id="sourceDescription">6 fictional records · held in this browser</p></div><button id="openSource" class="button subtle">Inspect source<img src="./assets/icons/arrow-up-right.svg" alt=""></button></section>
+              <section class="disclosure-section" aria-labelledby="disclosureTitle"><div class="section-top"><h2 id="disclosureTitle"><img src="./assets/icons/shield-check.svg" alt="">The disclosure boundary</h2><span class="badge">Browser-local execution</span></div><div class="disclosure-facts"><div><span>Used locally</span><p>Order IDs, names, contacts, dates, amounts, status</p></div><div><span>Sent to a model</span><p>Nothing for this workflow</p></div></div><details><summary>Inspect the data policy</summary><p>Bank details and unrelated notes are excluded from the execution representation. Source files stay in this browser. Saving a run records aggregate totals and a source hash on the backend; it does not upload names, contacts, source rows or drafts.</p><pre id="policyPayload"></pre></details></section>
+              <div class="run-bar"><div><strong id="readyLabel">Ready when you are</strong><span>Deterministic CPU · 0 AI calls</span></div><div class="run-actions"><button id="saveWorkflow" class="button subtle"><img src="./assets/icons/plus.svg" alt="">Save workflow</button><button id="runWorkflow" class="button primary"><img src="./assets/icons/play.svg" alt="">Generate drafts</button></div></div>
+              <section id="resultsPanel" class="results hidden" aria-labelledby="resultsTitle"><div class="section-top"><div><h2 id="resultsTitle" tabindex="-1">Drafts ready for review</h2><p id="resultSummary" class="muted"></p></div><button id="exportDrafts" class="button subtle"><img src="./assets/icons/download-simple.svg" alt="">Export CSV</button></div><div id="resultFacts" class="result-facts"></div><div id="draftList" class="draft-list"></div><div class="result-footer"><span id="runTiming"></span><button id="explainAI" class="text-button">Explain with AI (optional)<img src="./assets/icons/arrow-up-right.svg" alt=""></button></div><p id="aiExplanation" class="answer hidden"></p></section>
+            </div>
+            <aside class="execution-aside" aria-label="Execution preview"><h2>A clear path to done.</h2><p class="muted small">Each step has a job. AI is used only when the task needs it.</p><ol class="pipeline"><li id="stepUnderstand"><span class="step-icon"><img src="./assets/icons/fingerprint.svg" alt=""></span><div><strong>Understand intent</strong><p>Bounded, editable rules</p></div></li><li id="stepMinimize"><span class="step-icon"><img src="./assets/icons/shield-check.svg" alt=""></span><div><strong>Minimize disclosure</strong><p>Only task-required fields</p></div></li><li id="stepExecute"><span class="step-icon"><img src="./assets/icons/cpu.svg" alt=""></span><div><strong>Choose execution</strong><p>Deterministic CPU for orders</p></div></li><li id="stepReview"><span class="step-icon"><img src="./assets/icons/check.svg" alt=""></span><div><strong>Review the result</strong><p>Drafts, totals and evidence</p></div></li></ol><div class="execution-note"><img src="./assets/icons/lock-simple.svg" alt=""><p>A saved workflow remembers the rules.<strong>Every run reads the current data.</strong></p></div><div class="gateway-note"><span>Cloud AI, when approved</span><strong>Routed through Prune<img src="./assets/icons/arrow-up-right.svg" alt=""></strong><p>Actual metadata and receipts.<br>No invented savings.</p></div></aside>
+          </div>
+        </section>
+        <section id="libraryView" class="view hidden" aria-labelledby="libraryTitle"><div class="page-heading"><div><h1 id="libraryTitle">Your repeatable work.</h1><p>Saved rules. Fresh data. No repeated planning call.</p></div><button class="button subtle" id="refreshLibrary">Refresh</button></div><div id="workflowList" class="list-surface"></div></section>
+        <section id="sourcesView" class="view hidden" aria-labelledby="sourcesTitle"><div class="page-heading"><div><h1 id="sourcesTitle">Keep the source close.</h1><p>CSV and JSON are parsed in this browser. No source file upload.</p></div></div><div class="source-actions"><label class="button primary file-button" for="sourceFile"><img src="./assets/icons/upload-simple.svg" alt="">Choose CSV or JSON</label><input id="sourceFile" class="sr-only" type="file" accept=".csv,.json"><button id="loadSample" class="button subtle">Load fictional example</button><button id="clearSource" class="text-button">Clear source</button></div><p id="sourceMessage" class="inline-message" role="status"></p><div class="source-meta"><strong id="sourceName">Example orders</strong><span id="sourceCount">6 records</span><span>INR amounts · YYYY-MM-DD dates</span></div><div class="table-wrap" tabindex="0" aria-label="Source records; scroll horizontally for more columns"><table><caption class="sr-only">Current order records, displayed locally</caption><thead><tr><th>Order</th><th>Customer</th><th>Contact</th><th>Due date</th><th>Amount</th><th>Status</th></tr></thead><tbody id="sourceRows"></tbody></table></div><details class="schema-help"><summary>Required columns and source boundaries</summary><p>Required: order_id, customer_name, contact, due_date, amount, status. Status is pending, paid or cancelled. Amount is INR with at most two decimal places. Up to 2,000 rows and 750 KB. Extra columns may exist but are excluded from execution. Invalid or ambiguous records block the whole run.</p><p>Optional cloud explanations share only approved aggregate numbers. Aggregate totals can still be commercially sensitive. Review the exact payload before approval.</p></details></section>
+        <section id="historyView" class="view hidden" aria-labelledby="historyTitle"><div class="page-heading"><div><h1 id="historyTitle">A record of the work.</h1><p>Aggregate run evidence and genuine provider metadata.</p></div><button id="refreshHistory" class="button subtle">Refresh</button></div><p class="muted small">Local run evidence is reported by this browser, not independently attested. Customer rows and drafts are not stored in run history.</p><div id="historyList" class="list-surface"></div></section>
+        <section id="computeView" class="view hidden" aria-labelledby="computeTitle"><div class="page-heading"><div><h1 id="computeTitle">Know what did the work.</h1><p>Real availability, explicit execution paths, traceable AI calls.</p></div><button id="refreshCompute" class="button subtle">Refresh</button></div><dl id="computeDetails" class="compute-details"></dl><div class="compute-explanation"><h2>Why this workflow uses the CPU</h2><p>Order filtering, date comparisons, integer money arithmetic and reminder templates are deterministic operations. This build uses browser CPU execution for them. A detected GPU is availability information; no CUDA workload is claimed.</p><h2>Prune evidence</h2><p>Optional AI calls require approval. Their returned metadata is saved in run history. A signature is shown as present or absent; this app does not claim cryptographic verification. Estimated gateway savings are distinct from actual charged cost.</p><a class="text-button" href="https://www.withprune.com/verify" target="_blank" rel="noreferrer">Open Prune receipt verifier<img src="./assets/icons/arrow-up-right.svg" alt=""></a></div></section>
+      </main>
+      <footer class="workspace-footer"><span>Built to do more with less.</span><span>Local rules · Explicit disclosure · Reusable work</span></footer>
     </div>
   </div>
-
-  <div id="appScreen" class="app hidden">
-    <aside class="sidebar">
-      <div class="brand">
-        <span class="brand-icon">IE</span>
-        <span>IndicEdge</span>
-      </div>
-
-      <div class="sidebar-section">WORKSPACE</div>
-      <button class="nav active" data-view="overview">
-        Overview
-      </button>
-      <button class="nav" data-view="assistant">
-        AI Workspace
-      </button>
-      <button class="nav" data-view="history">
-        Execution History
-      </button>
-
-      <div class="sidebar-section">SYSTEM</div>
-      <div class="sidebar-note">
-        <strong>Active modules</strong>
-        <p>Supabase Auth</p>
-        <p>Drizzle PostgreSQL</p>
-        <p>WithPrune Gateway</p>
-      </div>
-
-      <div class="sidebar-bottom">
-        <p id="userEmail" class="muted"></p>
-        <button id="logoutBtn" class="secondary">
-          Sign out
-        </button>
-      </div>
-    </aside>
-
-    <main class="main">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">INDICEDGE / CONTROL PLANE</p>
-          <h2 id="pageTitle">Overview</h2>
-        </div>
-        <span id="systemBadge" class="status">
-          Checking...
-        </span>
-      </header>
-
-      <section id="overviewView" class="view">
-        <div class="intro">
-          <h1>Welcome to IndicEdge.</h1>
-          <p class="muted">
-            Your privacy-first AI infrastructure workspace.
-          </p>
-        </div>
-
-        <div class="stats">
-          <div class="panel stat">
-            <span>Backend</span>
-            <strong id="apiStatus">Checking</strong>
-          </div>
-          <div class="panel stat">
-            <span>Database</span>
-            <strong id="dbStatus">Checking</strong>
-          </div>
-          <div class="panel stat">
-            <span>WithPrune</span>
-            <strong id="pruneStatus">Checking</strong>
-          </div>
-          <div class="panel stat">
-            <span>GPU</span>
-            <strong id="gpuStatus">Checking</strong>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Current build</h3>
-          <p class="muted">
-            Phase 1: authentication, database,
-            and WithPrune integration.
-          </p>
-          <div class="tags">
-            <span>Node.js</span>
-            <span>Docker</span>
-            <span>Supabase</span>
-            <span>Drizzle</span>
-            <span>WithPrune</span>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h3>Upcoming capabilities</h3>
-          <p class="muted">
-            Need2Know, document retrieval, reusable
-            workflows, Sarvam speech processing,
-            and CUDA inference.
-          </p>
-        </div>
-      </section>
-
-      <section id="assistantView" class="view hidden">
-        <div class="panel">
-          <div class="section-header">
-            <div>
-              <h3>AI Workspace</h3>
-              <p class="muted">
-                All LLM calls are routed through WithPrune.
-              </p>
-            </div>
-            <span class="pill">Prune only</span>
-          </div>
-
-          <textarea id="promptInput" rows="6"
-            maxlength="4000"
-            placeholder="Describe your request in English, Hindi, or another supported language..."></textarea>
-
-          <div class="action-row">
-            <small id="characterCount">0 / 4000</small>
-            <button id="sendBtn" class="primary">
-              Execute request
-            </button>
-          </div>
-
-          <p id="requestMessage" class="message"></p>
-        </div>
-
-        <div id="resultPanel" class="panel hidden">
-          <h3>Model response</h3>
-          <div id="answerOutput" class="answer"></div>
-
-          <div class="result-details">
-            <div>
-              <span>Model</span>
-              <strong id="modelOutput">—</strong>
-            </div>
-            <div>
-              <span>Latency</span>
-              <strong id="latencyOutput">—</strong>
-            </div>
-          </div>
-
-          <h4>WithPrune receipt metadata</h4>
-          <pre id="receiptOutput"></pre>
-        </div>
-      </section>
-
-      <section id="historyView" class="view hidden">
-        <div class="panel">
-          <div class="section-header">
-            <div>
-              <h3>Execution History</h3>
-              <p class="muted">
-                Stored in Supabase PostgreSQL.
-              </p>
-            </div>
-            <button id="refreshHistory"
-                    class="secondary">
-              Refresh
-            </button>
-          </div>
-
-          <div id="historyList" class="history-list">
-            No history loaded.
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <script type="module" src="./app.js"></script>
+  <dialog id="accountDialog" aria-labelledby="accountTitle"><form id="authForm"><div class="section-top"><h2 id="accountTitle">Your workspace</h2><button class="icon-button close-dialog" type="button" aria-label="Close account"><img src="./assets/icons/x.svg" alt=""></button></div><p id="authDescription" class="muted"></p><div id="authFields"><label for="email">Email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="6" required><div class="dialog-actions"><button id="loginBtn" class="button primary" type="submit">Sign in</button><button id="signupBtn" class="button subtle" type="button">Create account</button></div></div><button id="logoutBtn" class="button subtle hidden" type="button">Sign out</button><p id="authMessage" class="inline-message" role="status"></p></form></dialog>
+  <dialog id="saveDialog" aria-labelledby="saveTitle"><form id="saveForm"><div class="section-top"><h2 id="saveTitle">Save the rules</h2><button class="icon-button close-dialog" type="button" aria-label="Close save workflow"><img src="./assets/icons/x.svg" alt=""></button></div><p class="muted">Saves the validated plan, not your source records or customer drafts. Workflow names are stored; avoid private details.</p><label for="workflowName">Workflow name</label><input id="workflowName" maxlength="80" value="Overdue order follow-up" required><div class="dialog-actions"><button class="button primary" type="submit">Save workflow</button></div><p id="saveMessage" class="inline-message" role="status"></p></form></dialog>
+  <dialog id="disclosureDialog" aria-labelledby="disclosureDialogTitle"><div class="section-top"><h2 id="disclosureDialogTitle">Review before sharing</h2><button class="icon-button close-dialog" aria-label="Cancel disclosure"><img src="./assets/icons/x.svg" alt=""></button></div><p id="disclosureReason" class="muted"></p><pre id="outboundPayload" tabindex="0"></pre><label class="checkbox-label"><input id="approvePayload" type="checkbox">I reviewed this exact payload and approve sending it through Prune.</label><p class="small muted">Instructions may contain private facts the pattern filter misses. Aggregates may also be sensitive. Cloud calls can incur charges; no automatic retries.</p><div class="dialog-actions"><button id="confirmDisclosure" class="button primary" disabled>Approve &amp; call AI</button></div><p id="disclosureMessage" class="inline-message" role="status"></p></dialog>
+  <script src="./app.js" type="module"></script>
 </body>
 </html>
