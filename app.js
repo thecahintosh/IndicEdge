@@ -261,6 +261,7 @@ async function sendPrompt() {
   try {
     const result = await api("/api/ask", {
       method: "POST",
+      headers: { 'Idempotency-Key': crypto.randomUUID() },
       body: JSON.stringify({ prompt })
     });
 
@@ -334,9 +335,8 @@ async function initialize() {
   );
 
   try {
-    apiBase = (
-      localStorage.getItem("indicedge_api") || ""
-    ).replace(/\/$/, "");
+    apiBase = "";
+    localStorage.removeItem("indicedge_api");
 
     const response = await fetch(
       apiBase + "/api/config"

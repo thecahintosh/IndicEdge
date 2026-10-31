@@ -3,11 +3,10 @@ FROM node:24-bookworm-slim
 
 WORKDIR /app
 
-COPY package.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install \
+RUN npm ci \
     --omit=dev \
-    --legacy-peer-deps \
     --no-audit \
     --no-fund \
     --fetch-retries=2
@@ -18,6 +17,8 @@ COPY server.js engine.js gpu.js db.js ./
 
 ENV NODE_ENV=production
 ENV PORT=8000
+
+USER node
 
 EXPOSE 8000
 

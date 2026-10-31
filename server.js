@@ -1,246 +1,93 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
+import { createClient } from '@supabase/supabase-js';
+import { localStore, postgresStore } from './db.js';
+import { createPrune, pruneConfigured, admittedCall, statusError } from './engine.js';
+import { getGPUStatus } from './gpu.js';
 
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { createClient } from "@supabase/supabase-js";
-
-import {
-  initializeDatabase,
-  checkDatabase,
-  saveRun,
-  getHistory,
-  closeDatabase
-} from "./db.js";
-
-import { askPrune, pruneConfigured } from "./engine.js";
-import { getGPUStatus } from "./gpu.js";
-
-const app = express();
-const PORT = Number(process.env.PORT || 8000);
 const root = path.dirname(fileURLToPath(import.meta.url));
+const localOwner = '00000000-0000-4000-8000-000000000001';
+export const fingerprint = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 
-for (const name of [
-  "DATABASE_URL",
-  "SUPABASE_URL",
-  "SUPABASE_ANON_KEY"
-]) {
-  if (!process.env[name]) {
-    throw new Error(`${name} is missing`);
-  }
-}
-
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false
-    }
-  }
-);
-
-const allowedOrigins = (
-  process.env.FRONTEND_ORIGINS || "http://localhost:8000"
-).split(",").map(value => value.trim());
-
-app.disable("x-powered-by");
-
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error("Origin not allowed"));
-  }
-}));
-
-app.use(express.json({ limit: "32kb" }));
-
-app.use((req, res, next) => {
-  res.setHeader("X-Content-Type-Options", "nosniff");
-  res.setHeader("Referrer-Policy", "no-referrer");
-  res.setHeader("Cache-Control", "no-store");
-  next();
-});
-
-// Explicit frontend routes with correct MIME types
-
-app.get(["/", "/index.html"], (req, res) => {
-  res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.sendFile(path.join(root, "index.html"));
-});
-
-app.get("/style.css", (req, res) => {
-  res.setHeader("Content-Type", "text/css; charset=utf-8");
-  res.sendFile(path.join(root, "style.css"));
-});
-
-app.get("/app.js", (req, res) => {
-  res.setHeader(
-    "Content-Type",
-    "text/javascript; charset=utf-8"
-  );
-  res.sendFile(path.join(root, "app.js"));
-});
-
-async function requireAuth(req, res, next) {
-  const header = req.headers.authorization || "";
-
-  if (!header.startsWith("Bearer ")) {
-    return res.status(401).json({
-      error: "Authentication required"
-    });
-  }
-
-  try {
-    const token = header.slice(7);
-    const { data, error } =
-      await supabase.auth.getUser(token);
-
-    if (error || !data?.user?.id) {
-      return res.status(401).json({
-        error: "Invalid or expired session"
-      });
-    }
-
-    req.user = data.user;
+export function createApp({ store, authenticate, callPrune, env = process.env, gpu = getGPUStatus, mountWorkflows } = {}) {
+  const app = express();
+  const local = env.LOCAL_MODE === 'true';
+  const origins = (env.FRONTEND_ORIGINS || 'http://localhost:8000,http://127.0.0.1:8000').split(',').map(s => s.trim());
+  app.disable('x-powered-by');
+  app.use((req, res, next) => {
+    res.set({ 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'no-referrer', 'Cache-Control': 'no-store',
+      'Content-Security-Policy': "default-src 'self'; script-src 'self' https://esm.sh https://cdn.jsdelivr.net; style-src 'self'; font-src 'self'; connect-src 'self' https://*.supabase.co; img-src 'self' data:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" });
+    if (local && !['127.0.0.1', 'localhost', '[::1]'].includes(req.hostname)) return res.status(403).json({ error: 'Local mode accepts only localhost requests' });
+    if (req.headers.origin && !origins.includes(req.headers.origin)) return res.status(403).json({ error: 'Origin is not allowed' });
     next();
-  } catch {
-    return res.status(503).json({
-      error: "Authentication service unavailable"
-    });
+  });
+  app.use(cors({ origin: origins }));
+  app.use(express.json({ limit: '1mb' }));
+  for (const file of ['index.html', 'style.css', 'app.js', 'workflow.js', 'source.js']) {
+    app.get(file === 'index.html' ? ['/', '/index.html'] : `/${file}`, (req, res) => res.sendFile(path.join(root, file)));
   }
+  app.use('/assets', express.static(path.join(root, 'assets'), { dotfiles: 'deny' }));
+  app.get('/api/config', (req, res) => res.json({ local, appName: 'IndicEdge',
+    supabaseUrl: local ? null : env.SUPABASE_URL, supabaseAnonKey: local ? null : env.SUPABASE_ANON_KEY,
+    prune: !local && pruneConfigured(env), dailyCallLimit: Number(env.MAX_DAILY_CALLS || 30) }));
+  app.get('/api/health', async (req, res) => {
+    let connected = false;
+    try { connected = await store.health(); } catch {}
+    res.status(connected ? 200 : 503).json({ api: 'online', database: connected ? (local ? 'local file' : 'connected') : 'unavailable',
+      prune: local ? 'disabled in local mode' : pruneConfigured(env) ? 'configured' : 'missing', local });
+  });
+  app.use('/api', async (req, res, next) => {
+    try {
+      req.owner = local ? localOwner : await authenticate(req.headers.authorization);
+      if (!req.owner) throw statusError(401, 'Sign in to access your workspace');
+      next();
+    } catch (error) { next(error.status ? error : statusError(503, 'Authentication service unavailable')); }
+  });
+  app.get('/api/gpu', async (req, res) => res.json({ ...(await gpu()), acceleratedWorkload: false }));
+  app.get('/api/history', async (req, res) => res.json({ items: (await store.read(req.owner)).history }));
+  app.post('/api/ask', async (req, res) => {
+    const prompt = req.body?.prompt;
+    if (typeof prompt !== 'string' || !prompt.trim() || prompt.length > 4000) throw statusError(400, 'Prompt must contain 1–4000 characters');
+    if (local || !pruneConfigured(env)) throw statusError(503, 'Prune is not available in this mode');
+    const result = await admittedCall(store, req.owner, req.get('Idempotency-Key'), fingerprint({ prompt }),
+      () => callPrune([{ role: 'system', content: 'Answer concisely. Do not claim external actions or file access.' }, { role: 'user', content: prompt }], req.get('Idempotency-Key')),
+      Number(env.MAX_DAILY_CALLS || 30));
+    res.json(result);
+  });
+  mountWorkflows?.(app, { store, callPrune, env, fingerprint });
+  app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+  app.use((error, req, res, next) => {
+    const status = error.type === 'entity.parse.failed' ? 400 : error.type === 'entity.too.large' ? 413 : error.status || 500;
+    res.status(status).json({ error: status === 500 ? 'Request could not be completed. Check configuration and try again.' :
+      status === 400 && error.type ? 'Request body is not valid JSON' : status === 413 ? 'File is too large; use at most 1 MB' : error.message });
+  });
+  return app;
 }
 
-app.get("/api/config", (req, res) => {
-  res.json({
-    supabaseUrl: process.env.SUPABASE_URL,
-    supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-    appName: "IndicEdge"
-  });
-});
-
-app.get("/api/health", async (req, res) => {
-  let database = false;
-
-  try {
-    database = await checkDatabase();
-  } catch {
-    database = false;
-  }
-
-  res.status(database ? 200 : 503).json({
-    api: "online",
-    database: database ? "connected" : "unavailable",
-    prune: pruneConfigured() ? "configured" : "missing",
-    timestamp: new Date().toISOString()
-  });
-});
-
-app.get("/api/gpu", requireAuth, async (req, res) => {
-  res.json(await getGPUStatus());
-});
-
-app.get("/api/history", requireAuth, async (req, res) => {
-  try {
-    const items = await getHistory(req.user.id);
-    res.json({ items });
-  } catch {
-    res.status(500).json({
-      error: "Could not load history"
-    });
-  }
-});
-
-const activeUsers = new Set();
-
-app.post("/api/ask", requireAuth, async (req, res) => {
-  const prompt = req.body?.prompt;
-
-  if (
-    typeof prompt !== "string" ||
-    prompt.trim().length < 1 ||
-    prompt.length > 4000
-  ) {
-    return res.status(400).json({
-      error: "Prompt must contain 1 to 4000 characters"
-    });
-  }
-
-  if (!pruneConfigured()) {
-    return res.status(503).json({
-      error: "WithPrune is not configured"
-    });
-  }
-
-  const userId = req.user.id;
-
-  if (activeUsers.has(userId)) {
-    return res.status(429).json({
-      error: "Another request is still running"
-    });
-  }
-
-  activeUsers.add(userId);
-
-  try {
-    const result = await askPrune(prompt.trim());
-
-    const saved = await saveRun({
-      userId,
-      prompt: prompt.trim(),
-      answer: result.answer,
-      model: result.model,
-      metadata: {
-        prune: result.metadata,
-        usage: result.usage,
-        latencyMs: result.latencyMs
-      }
-    });
-
-    res.json({
-      id: saved.id,
-      ...result
-    });
-  } catch (error) {
-    console.error("LLM request failed:", error.message);
-
-    res.status(502).json({
-      error: "LLM request failed. Check backend logs."
-    });
-  } finally {
-    activeUsers.delete(userId);
-  }
-});
-
-app.use((req, res) => {
-  res.status(404).json({
-    error: "Not found"
-  });
-});
-
-app.use((error, req, res, next) => {
-  console.error("Server error:", error.message);
-
-  res.status(500).json({
-    error: "Internal server error"
-  });
-});
-
-await initializeDatabase();
-
-const server = app.listen(PORT, "0.0.0.0", () => {
-  console.log(`IndicEdge listening on port ${PORT}`);
-});
-
-async function shutdown() {
-  server.close();
-  await closeDatabase();
-  process.exit(0);
+export async function start(env = process.env) {
+  const local = env.LOCAL_MODE === 'true';
+  const host = env.HOST || (local ? '127.0.0.1' : '0.0.0.0');
+  if (local && !['127.0.0.1', '::1', 'localhost'].includes(host)) throw new Error('LOCAL_MODE must bind to localhost');
+  if (!local) for (const key of ['DATABASE_URL', 'SUPABASE_URL', 'SUPABASE_ANON_KEY']) if (!env[key]) throw new Error(`${key} is required; use LOCAL_MODE=true for an explicit local demo`);
+  const store = local ? localStore(path.resolve(root, env.DATA_DIR || '.data')) : await postgresStore(env.DATABASE_URL);
+  const auth = local ? null : createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+  const authenticate = async header => {
+    if (!header?.startsWith('Bearer ')) throw statusError(401, 'Authentication required');
+    const { data, error } = await auth.auth.getUser(header.slice(7));
+    if (error || !data?.user?.id) throw statusError(401, 'Invalid or expired session');
+    return data.user.id;
+  };
+  let mountWorkflows;
+  try { ({ mountWorkflows } = await import('./workflow-api.js')); } catch (error) { if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error; }
+  const app = createApp({ store, authenticate, callPrune: createPrune(env), env, mountWorkflows });
+  const server = app.listen(Number(env.PORT || 8000), host, () => console.log(`IndicEdge: http://${host}:${env.PORT || 8000} (${local ? 'local, AI disabled' : 'authenticated'})`));
+  async function shutdown() { server.close(async () => { await store.close(); process.exit(0); }); }
+  process.once('SIGINT', shutdown);
+  process.once('SIGTERM', shutdown);
+  return server;
 }
-
-process.on("SIGINT", shutdown);
-process.on("SIGTERM", shutdown);
+if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) await start();
