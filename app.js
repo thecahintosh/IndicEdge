@@ -5,6 +5,8 @@ import { readDatasetFile } from './source-loader.js';
 import { validateDataset, sourceCapabilities } from './dataset.js';
 import { setupDatasetUI } from './dataset-ui.js';
 import { setupRetrievalUI } from './retrieval-ui.js';
+import { understandDataTask, executeDataTask } from './task-intent.js';
+import { renderTable } from './dataset-ui.js';
 
 const $ = id => document.getElementById(id);
 const state = { config: null, session: null, auth: null, generation: 0, controllers: new Set(), rows: [],
@@ -49,6 +51,7 @@ function button(text, className, action) {
 }
 function plan() { return validatePlan({ version: 1, kind: 'overdue_reminders', minDaysOverdue: Number($('days').value), language: $('language').value, includeSummary: $('includeSummary').checked }); }
 function applyPlan(value, origin) {
+  state.dataTask = null;
   const valid = validatePlan(value);
   $('days').value = valid.minDaysOverdue; $('language').value = valid.language;
   $('includeSummary').checked = valid.includeSummary;
@@ -63,6 +66,22 @@ function invalidate() {
   $('draftList').replaceChildren(); $('resultSummary').textContent = ''; $('resultFacts').replaceChildren(); $('aiExplanation').textContent = '';
   for (const id of ['stepUnderstand', 'stepMinimize', 'stepExecute', 'stepReview']) $(id).classList.remove('complete');
   const orderSupport = state.rows.length ? sourceCapabilities(state.rows).order : null;
+  $('rulesPanel').classList.toggle('hidden', Boolean(state.dataTask));
+  $('dataTaskRules').classList.toggle('hidden', !state.dataTask);
+  $('runWorkflow').textContent = state.dataTask ? 'Run calculation' : 'Generate drafts';
+  $('saveWorkflow').disabled = Boolean(state.dataTask);
+  $('exportDrafts').classList.toggle('hidden', Boolean(state.dataTask));
+  $('explainAI').classList.toggle('hidden', Boolean(state.dataTask));
+  if (state.dataTask) {
+    $('dataTaskDescription').textContent = `${state.dataTask.label}${state.dataTask.field ? ` · field: ${state.dataTask.field}` : ''}. ${state.dataTask.note || 'Runs against the entire active dataset.'}`;
+    $('readyLabel').textContent = state.intentBlocked ? 'Review the changed instruction first' : 'Ready to calculate on the active source';
+    $('runWorkflow').disabled = !state.rows.length || state.intentBlocked;
+    $('sourceConstraintNote').textContent = '';
+    $('policyPayload').textContent = json({ operation: state.dataTask.operation, field: state.dataTask.field, execution: 'browser-local', cloudFields: [] });
+    $('localFieldsDescription').textContent = state.dataTask.field || 'Fields required by the selected dataset calculation';
+    return;
+  }
+  $('localFieldsDescription').textContent = 'Order IDs, names, contacts, dates, amounts, status';
   $('readyLabel').textContent = orderSupport && !orderSupport.available ? 'Order reminders unavailable for this source' : state.intentBlocked ? 'Review the changed instruction first' : state.rows.length ? 'Ready when you are' : 'Load source records first';
   $('runWorkflow').disabled = !state.rows.length || state.intentBlocked || !orderSupport?.available;
   $('sourceConstraintNote').textContent = orderSupport && !orderSupport.available ? `${orderSupport.note} Your dataset is loaded; use Source data → Analyze fields for other operations.` : '';
@@ -109,12 +128,29 @@ function clearWorkbook() {
   state.sourceEpoch++; state.sheets = []; $('sourceSheet').replaceChildren(); $('sheetControl').classList.add('hidden'); $('sourceImportNote').textContent = '';
 }
 function loadSample() {
+  state.dataTask = null;
   clearWorkbook();
   state.sourceKind = 'dataset';
   state.rows = sampleOrders($('asOf').value || businessDate()); state.synthetic = true; state.sourceName = 'Fictional example orders'; renderSource();
 }
 async function run() {
   if (state.intentBlocked) throw new Error('Review the instruction or edit explicit rules before running');
+  if (state.dataTask) {
+    $('draftList').replaceChildren();
+    const started = performance.now(); const result = executeDataTask(state.dataTask, state.rows);
+    $('resultsTitle').textContent = result.label || state.dataTask.label;
+    $('resultSummary').textContent = result.note || state.dataTask.note;
+    $('resultFacts').replaceChildren();
+    if (result.type === 'value') $('resultFacts').append(node('strong', 'dataset-value', result.value));
+    else {
+      const wrap = node('div', 'table-wrap'); wrap.tabIndex = 0; wrap.setAttribute('aria-label', 'Calculation results');
+      const table = node('table'), head = node('thead'), body = node('tbody'); table.append(head, body); wrap.append(table);
+      renderTable(head, body, result.rows, result.columns); $('draftList').append(wrap);
+    }
+    $('runTiming').textContent = `${(performance.now() - started).toFixed(1)} ms · all ${state.rows.length} records · 0 AI calls · source unchanged`;
+    $('resultsPanel').classList.remove('hidden'); reveal($('resultsPanel')); $('resultsTitle').focus({ preventScroll: true }); return;
+  }
+  $('resultsTitle').textContent = 'Drafts ready for review';
   const currentPlan = plan();
   const started = performance.now();
   const result = executeWorkflow(currentPlan, state.rows, $('asOf').value);
@@ -199,6 +235,7 @@ function setSession(session) {
   state.generation++;
   for (const controller of state.controllers) controller.abort();
   state.session = session; state.workflows = []; state.pendingAI = null;
+  state.dataTask = null;
   $('libraryCount').textContent = '0'; $('historyList').replaceChildren(); $('workflowList').replaceChildren();
   state.rows = []; state.sourceName = 'No source loaded'; state.synthetic = false; renderSource();
   clearWorkbook();
@@ -225,6 +262,14 @@ async function refreshStatus() {
 
 on('understand', 'click', () => {
   $('intentMessage').replaceChildren();
+  if (!/remind|रिमाइंडर|संदेश|draft/i.test($('instruction').value)) {
+    try {
+      state.dataTask = understandDataTask($('instruction').value, state.rows); state.intentBlocked = false; invalidate();
+      $('intentMessage').textContent = 'Calculation understood. Review its field and interpretation below, then run it.'; return;
+    } catch (error) {
+      state.dataTask = null; state.intentBlocked = true; invalidate(); $('intentMessage').textContent = error.message; return;
+    }
+  }
   try { applyPlan(understandIntent($('instruction').value), 'Understood locally · review before running'); $('intentMessage').textContent = 'Rules ready. Check the threshold, draft language and evaluation date below.'; reveal($('rulesPanel')); }
   catch (error) {
     state.intentBlocked = true; invalidate();
