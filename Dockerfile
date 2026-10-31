@@ -14,6 +14,7 @@ RUN npm ci \
 COPY index.html style.css app.js ./
 
 COPY server.js engine.js gpu.js db.js ./
+COPY workflow.js source.js workflow-api.js ./
 
 ENV NODE_ENV=production
 ENV PORT=8000
