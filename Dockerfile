@@ -16,6 +16,7 @@ COPY index.html style.css app.js ./
 COPY server.js engine.js gpu.js db.js ./
 COPY workflow.js source.js workflow-api.js ./
 COPY dataset.js dataset-ui.js source-loader.js document-reader.js ./
+COPY retrieval.js retrieval-ui.js ./
 COPY assets ./assets
 
 ENV NODE_ENV=production

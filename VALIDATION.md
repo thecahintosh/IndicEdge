@@ -1,5 +1,12 @@
 # Validation — 31 October 2026
 
+## Local retrieval and approved answer update
+
+- 40 unit/API tests cover BM25 ranking, page-boundary provenance, overlapping long text, excluded fields, same-language Hindi search, no matches, bounded approved contexts, unknown/missing citation rejection, exact-payload approval and idempotent replay of provider fixture responses.
+- Nine browser scenarios include multi-file retrieval, cited excerpts, no-match behavior, sensitive-field exclusion/explicit opt-in, browser-local processing and replacement of stale active-source snapshots. Desktop and 390px/320px layouts and axe checks pass in the tested states.
+- The actual 17-page project guide was loaded locally and a Prune/API question returned three excerpts with page/line citations. No source text was sent to a model for this check.
+- The generated-answer route is tested with a fixture. Live Prune calls and signed receipts are still not claimed without the user's credentials.
+
 ## Document source update
 
 - 32 unit/API tests include text line provenance, UTF-8/UTF-16 decoding, binary/encoding rejection, PDF text grouping and supported-file/size boundaries.

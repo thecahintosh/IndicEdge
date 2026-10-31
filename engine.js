@@ -4,7 +4,7 @@ export const pruneConfigured = (env = process.env) => Boolean(env.PRUNE_API_KEY 
 
 export function createPrune(env = process.env) {
   let client;
-  return async function callPrune(messages, runId, json = false) {
+  return async function callPrune(messages, runId, json = false, feature) {
     if (!pruneConfigured(env)) throw new Error('Prune is not configured');
     client ??= new OpenAI({ apiKey: env.PRUNE_API_KEY, baseURL: 'https://api.withprune.com/v1', timeout: 25000, maxRetries: 0 });
     const start = performance.now();
@@ -14,7 +14,7 @@ export function createPrune(env = process.env) {
     }, { headers: {
       'X-Prune-Run-Id': runId,
       'X-Prune-Run-Budget-Usd': env.PRUNE_RUN_BUDGET_USD || '0.02',
-      'X-Prune-Feature-Id': json ? 'intent-compiler' : 'workflow-explanation'
+      'X-Prune-Feature-Id': feature || (json ? 'intent-compiler' : 'workflow-explanation')
     } });
     const answer = response.choices?.[0]?.message?.content;
     if (typeof answer !== 'string' || !answer.trim()) throw new Error('No model text returned');

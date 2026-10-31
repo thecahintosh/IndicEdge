@@ -1,5 +1,7 @@
 # IndicEdge
 
+**Retrieval update:** Open **Ask your files** to search across uploaded sources with local BM25 ranking and page/paragraph/row citations. Add files directly or explicitly snapshot the active source. Optionally approve selected excerpts for a Prune-generated answer. See [RETRIEVAL.md](RETRIEVAL.md) for usage, privacy boundaries and limits. No remote embeddings or whole-file model uploads are used.
+
 **Source update:** Load arbitrary-schema CSV/TSV, JSON/JSONL and XLSX datasets, or PDF, Word DOCX and plain-text/Markdown/log documents. Document text is exposed as line/paragraph records; Word tables can be selected separately. Missing fields produce operation-specific notes instead of rejecting a readable source. Use **Source data → Analyze fields** for counts, sums/averages/min/max, filters, sorting, grouping and cash-flow summaries. See [DATASETS.md](DATASETS.md) for supported formats, extraction limits and usage. The order-specific rules below still apply when running reminder drafts.
 
 A task-aware workflow workspace for overdue-order follow-ups. Describe a supported task in English, Hindi or Hinglish, review explicit rules, inspect disclosure, and generate editable Hindi/English drafts. Save the rules and rerun them on fresh records without another planning call.

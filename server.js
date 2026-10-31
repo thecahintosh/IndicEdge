@@ -28,7 +28,7 @@ export function createApp({ store, authenticate, callPrune, env = process.env, g
   });
   app.use(cors({ origin: origins }));
   app.use(express.json({ limit: '1mb' }));
-  for (const file of ['index.html', 'style.css', 'app.js', 'workflow.js', 'source.js', 'dataset.js', 'dataset-ui.js', 'source-loader.js', 'document-reader.js']) {
+  for (const file of ['index.html', 'style.css', 'app.js', 'workflow.js', 'source.js', 'dataset.js', 'dataset-ui.js', 'source-loader.js', 'document-reader.js', 'retrieval.js', 'retrieval-ui.js']) {
     app.get(file === 'index.html' ? ['/', '/index.html'] : `/${file}`, (req, res) => res.sendFile(path.join(root, file)));
   }
   app.use('/assets', express.static(path.join(root, 'assets'), { dotfiles: 'deny' }));

@@ -4,11 +4,12 @@ import { sampleOrders, exportCSV } from './source.js';
 import { readDatasetFile } from './source-loader.js';
 import { validateDataset, sourceCapabilities } from './dataset.js';
 import { setupDatasetUI } from './dataset-ui.js';
+import { setupRetrievalUI } from './retrieval-ui.js';
 
 const $ = id => document.getElementById(id);
 const state = { config: null, session: null, auth: null, generation: 0, controllers: new Set(), rows: [],
-  sourceName: 'Fictional example orders', synthetic: true, result: null, workflows: [], pendingAI: null, view: 'workbench', intentBlocked: false, sheets: [], sourceEpoch: 0 };
-const titles = { workbench: 'Workbench', library: 'Saved workflows', sources: 'Source data', history: 'Run history', compute: 'Compute & receipts' };
+  sourceName: 'Fictional example orders', sourceKind: 'dataset', synthetic: true, result: null, workflows: [], pendingAI: null, view: 'workbench', intentBlocked: false, sheets: [], sourceEpoch: 0 };
+const titles = { workbench: 'Workbench', library: 'Saved workflows', sources: 'Source data', retrieve: 'Ask your files', history: 'Run history', compute: 'Compute & receipts' };
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const node = (tag, className, text) => { const el = document.createElement(tag); if (className) el.className = className; if (text !== undefined) el.textContent = text; return el; };
 const icon = name => { const img = document.createElement('img'); img.src = `./assets/icons/${name}.svg`; img.alt = ''; return img; };
@@ -97,11 +98,19 @@ function renderSource() {
 const datasetUI = setupDatasetUI({ getRows: () => state.rows, reveal, useRows: (rows, name) => {
   state.rows = rows; state.sourceName = `${state.sourceName} · ${name}`; renderSource(); notice('Active source updated to the derived rows. Reload the original file to restore it.');
 } });
+const retrievalUI = setupRetrievalUI({
+  getCurrent: () => ({ name: state.sheets.length > 1 ? `${state.sourceName} · ${$('sourceSheet').selectedOptions[0]?.textContent || 'active view'}` : state.sourceName, rows: state.rows, kind: state.sourceKind, note: $('sourceImportNote').textContent }),
+  canUseAI: () => Boolean(state.config?.prune), openDisclosure, reveal,
+  cancelDisclosure: () => {
+    if (state.pendingAI?.endpoint === 'retrieve-answer') { state.pendingAI = null; $('disclosureDialog').close(); }
+  }
+});
 function clearWorkbook() {
   state.sourceEpoch++; state.sheets = []; $('sourceSheet').replaceChildren(); $('sheetControl').classList.add('hidden'); $('sourceImportNote').textContent = '';
 }
 function loadSample() {
   clearWorkbook();
+  state.sourceKind = 'dataset';
   state.rows = sampleOrders($('asOf').value || businessDate()); state.synthetic = true; state.sourceName = 'Fictional example orders'; renderSource();
 }
 async function run() {
@@ -193,15 +202,16 @@ function setSession(session) {
   $('libraryCount').textContent = '0'; $('historyList').replaceChildren(); $('workflowList').replaceChildren();
   state.rows = []; state.sourceName = 'No source loaded'; state.synthetic = false; renderSource();
   clearWorkbook();
+  retrievalUI.clear();
   $('instruction').value = ''; $('draftList').replaceChildren(); $('aiExplanation').textContent = '';
   for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
   $('identity').textContent = session?.user?.email || 'Workspace';
   $('modeLabel').textContent = state.config?.local ? 'Local mode · AI disabled' : session ? 'Signed in' : 'Not signed in';
 }
-function openDisclosure(endpoint, data, messages, reason) {
+function openDisclosure(endpoint, data, messages, reason, context = {}) {
   if (!state.config?.prune) throw new Error('Remote AI is disabled or not configured. Use local rules and templates.');
   if (!state.session) { showAccount(); return; }
-  state.pendingAI = { endpoint, data: endpoint === 'compile' ? { instruction: messages[1].content } : data, messages, id: crypto.randomUUID() };
+  state.pendingAI = { endpoint, data: endpoint === 'compile' ? { instruction: messages[1].content } : data, messages, id: crypto.randomUUID(), ...context };
   $('outboundPayload').textContent = json(messages); $('disclosureReason').textContent = reason;
   $('approvePayload').checked = false; $('confirmDisclosure').disabled = true; $('disclosureMessage').textContent = '';
   $('disclosureDialog').showModal(); reveal($('disclosureDialog'));
@@ -230,6 +240,7 @@ for (const id of ['days', 'language', 'asOf', 'includeSummary']) on(id, 'input',
 on('instruction', 'input', () => { $('intentMessage').replaceChildren(); state.intentBlocked = true; invalidate(); });
 on('runWorkflow', 'click', run);
 on('openSource', 'click', () => route('sources'));
+on('askCurrentSource', 'click', () => { $('ragAddCurrent').click(); route('retrieve'); });
 on('newWorkflow', 'click', () => { $('instruction').value = ''; applyPlan({ version: 1, kind: 'overdue_reminders', minDaysOverdue: 5, language: 'hi', includeSummary: true }, 'Set directly · no model call'); route('workbench'); $('instruction').focus(); notice('New rules started. Your currently loaded source is unchanged.'); });
 on('loadSample', 'click', () => { loadSample(); notice('Loaded six fictional records. Review the source, then return to the workbench.'); });
 on('clearSource', 'click', () => { clearWorkbook(); state.rows = []; state.sourceName = 'No source loaded'; state.synthetic = false; $('sourceFile').value = ''; renderSource(); });
@@ -244,7 +255,7 @@ on('sourceFile', 'change', async e => {
     $('sourceSheet').replaceChildren(...result.sheets.map((sheet, i) => { const option = node('option', '', sheet.error ? `${sheet.name} — ${sheet.error}` : sheet.name); option.value = String(i); option.disabled = Boolean(sheet.error); return option; }));
     $('sourceSheet').value = String(selected); $('sheetControl').classList.toggle('hidden', result.sheets.length < 2);
     $('sourceImportNote').textContent = result.note;
-    state.rows = result.sheets[selected].rows; state.synthetic = false; state.sourceName = file.name; renderSource(); notice('Dataset loaded locally. Inspect constraints, then run an operation on its fields.');
+    state.rows = result.sheets[selected].rows; state.sourceKind = result.kind || 'dataset'; state.synthetic = false; state.sourceName = file.name; renderSource(); notice('Source loaded locally. Analyze its fields or use Ask your files to retrieve relevant excerpts.');
   } catch (error) { if (epoch !== state.sourceEpoch) return; state.rows = []; state.sourceName = 'Source rejected'; state.synthetic = false; renderSource(); throw error; }
   finally { $('sourceFile').value = ''; $('sourceFile').disabled = false; }
 });
@@ -277,6 +288,9 @@ on('confirmDisclosure', 'click', async () => {
       body: JSON.stringify({ ...pending.data, approvedDigest: await digest(pending.messages) }) });
     $('disclosureDialog').close();
     if (pending.endpoint === 'compile') { applyPlan(result.plan, 'Proposed by AI · validated · review before running'); $('intentMessage').textContent = 'AI proposed supported rules. Confirm they match your intended task.'; }
+    else if (pending.endpoint === 'retrieve-answer') {
+      if (!retrievalUI.applyAnswer(result, pending.ragVersion)) { notice('AI completed for a question or selection that has changed. Its answer was not displayed; check history for the receipt.'); return; }
+    }
     else { $('aiExplanation').textContent = result.answer; $('aiExplanation').classList.remove('hidden'); reveal($('aiExplanation')); }
     notice(result.persistenceWarning || 'Prune call completed. Returned metadata is available in Run history.');
   } catch (error) { if (error.name !== 'AbortError') $('disclosureMessage').textContent = `${error.message} This request will not be retried automatically.`; }
@@ -312,6 +326,7 @@ async function initialize() {
   setView(location.hash.slice(1) || 'workbench');
   try {
     state.config = await api('/api/config');
+    retrievalUI.refreshAI();
     $('modeLabel').textContent = state.config.local ? 'Local mode · AI disabled' : 'Not signed in';
     await refreshStatus();
     if (state.config.local) { await loadLibrary(); return; }

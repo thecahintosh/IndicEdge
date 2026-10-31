@@ -1,8 +1,21 @@
 import { randomUUID } from 'node:crypto';
 import { validatePlan, compilerMessages, summaryMessages, POLICY_VERSION, isoDay } from './workflow.js';
 import { admittedCall, pruneConfigured, statusError } from './engine.js';
+import { ragMessages, validateRagAnswer } from './retrieval.js';
 
 export function mountWorkflows(app, { store, callPrune, env, fingerprint }) {
+  app.post('/api/retrieve-answer', async (req, res) => {
+    if (env.LOCAL_MODE === 'true' || !pruneConfigured(env)) throw statusError(503, 'Prune answers are unavailable. Local retrieval and source citations remain available.');
+    const messages = ragMessages(req.body?.question, req.body?.evidence);
+    if (req.body.approvedDigest !== fingerprint(messages)) throw statusError(409, 'Approve the exact question and selected excerpts before calling AI');
+    const id = req.get('Idempotency-Key');
+    const result = await admittedCall(store, req.owner, id, fingerprint({ endpoint: 'retrieve-answer', messages }),
+      () => callPrune(messages, id, true, 'document-answer'), Number(env.MAX_DAILY_CALLS || 30));
+    let answer;
+    try { answer = validateRagAnswer(JSON.parse(result.answer), req.body.evidence); }
+    catch { return res.status(422).json({ error: 'AI returned an answer without valid approved-source citations. Inspect the excerpts directly. This call may have been charged; check its receipt in history.', metadata: result.metadata, usage: result.usage }); }
+    res.json({ ...result, ...answer });
+  });
   app.get('/api/requests', async (req, res) => res.json({ items: Object.entries((await store.read(req.owner)).requests).map(([id, row]) => ({ id, status: row.status, startedAt: row.startedAt })) }));
   app.post('/api/requests/:id/reconcile', async (req, res) => {
     if (req.body?.receiptReviewed !== true) throw statusError(400, 'Review the matching Prune request or receipt before acknowledging an unknown outcome');
