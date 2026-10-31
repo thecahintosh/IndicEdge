@@ -8,6 +8,7 @@ import { createClient } from '@supabase/supabase-js';
 import { localStore, postgresStore } from './db.js';
 import { createPrune, pruneConfigured, admittedCall, statusError } from './engine.js';
 import { getGPUStatus } from './gpu.js';
+import { mountWorkflows as workflowRoutes } from './workflow-api.js';
 
 const root = path.dirname(fileURLToPath(import.meta.url));
 const localOwner = '00000000-0000-4000-8000-000000000001';
@@ -69,6 +70,10 @@ export function createApp({ store, authenticate, callPrune, env = process.env, g
 }
 
 export async function start(env = process.env) {
+  const dailyLimit = Number(env.MAX_DAILY_CALLS || 30);
+  const runBudget = Number(env.PRUNE_RUN_BUDGET_USD || '0.02');
+  if (!Number.isInteger(dailyLimit) || dailyLimit < 1 || dailyLimit > 1000) throw new Error('MAX_DAILY_CALLS must be an integer in 1–1000');
+  if (!Number.isFinite(runBudget) || runBudget <= 0 || runBudget > 10) throw new Error('PRUNE_RUN_BUDGET_USD must be a positive amount up to 10 USD');
   const local = env.LOCAL_MODE === 'true';
   const host = env.HOST || (local ? '127.0.0.1' : '0.0.0.0');
   if (local && !['127.0.0.1', '::1', 'localhost'].includes(host)) throw new Error('LOCAL_MODE must bind to localhost');
@@ -81,9 +86,7 @@ export async function start(env = process.env) {
     if (error || !data?.user?.id) throw statusError(401, 'Invalid or expired session');
     return data.user.id;
   };
-  let mountWorkflows;
-  try { ({ mountWorkflows } = await import('./workflow-api.js')); } catch (error) { if (error.code !== 'ERR_MODULE_NOT_FOUND') throw error; }
-  const app = createApp({ store, authenticate, callPrune: createPrune(env), env, mountWorkflows });
+  const app = createApp({ store, authenticate, callPrune: createPrune(env), env, mountWorkflows: workflowRoutes });
   const server = app.listen(Number(env.PORT || 8000), host, () => console.log(`IndicEdge: http://${host}:${env.PORT || 8000} (${local ? 'local, AI disabled' : 'authenticated'})`));
   async function shutdown() { server.close(async () => { await store.close(); process.exit(0); }); }
   process.once('SIGINT', shutdown);

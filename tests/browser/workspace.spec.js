@@ -51,6 +51,9 @@ test('desktop and mobile UI, accessibility, fresh-data reuse and zero source dis
   await page.getByRole('button', { name: 'Export CSV' }).click();
   expect((await downloadPromise).suggestedFilename()).toMatch(/indicedge-drafts/);
   await page.getByRole('link', { name: 'Source data', exact: true }).click();
+  await page.getByRole('button', { name: 'Clear source', exact: true }).click();
+  await expect(page.locator('#draftList')).toBeEmpty();
+  await expect(page.locator('#sourceRows')).toBeEmpty();
   await page.locator('#sourceFile').setInputFiles({ name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('order_id\nmissing fields') });
   await expect(page.locator('#sourceName')).toHaveText('Source rejected');
   await page.getByRole('link', { name: 'Workbench', exact: true }).click();

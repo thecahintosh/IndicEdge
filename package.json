@@ -8,7 +8,8 @@
     "dev": "node --watch server.js",
     "demo": "node --env-file=.env.local-demo server.js",
     "test": "node --test tests/*.test.js",
-    "test:browser": "playwright test"
+    "test:browser": "playwright test",
+    "test:postgres": "node tests/postgres.integration.js"
   },
   "engines": {
     "node": ">=22"

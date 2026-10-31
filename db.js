@@ -37,10 +37,12 @@ export async function postgresStore(url) {
   return {
     async mutate(owner, operation) {
       return client.begin(async tx => {
-        await tx`INSERT INTO public.indicedge_state (user_id, state) VALUES (${owner}, ${tx.json(emptyState())}) ON CONFLICT DO NOTHING`;
+        // Drizzle configures postgres-js JSON serializers as transparent. Encode
+        // explicitly here because these locked transactions use the raw client.
+        await tx`INSERT INTO public.indicedge_state (user_id, state) VALUES (${owner}, ${JSON.stringify(emptyState())}::jsonb) ON CONFLICT DO NOTHING`;
         const [row] = await tx`SELECT state FROM public.indicedge_state WHERE user_id = ${owner} FOR UPDATE`;
         const result = operation(row.state);
-        await tx`UPDATE public.indicedge_state SET state = ${tx.json(row.state)}, updated_at = NOW() WHERE user_id = ${owner}`;
+        await tx`UPDATE public.indicedge_state SET state = ${JSON.stringify(row.state)}::jsonb, updated_at = NOW() WHERE user_id = ${owner}`;
         return result;
       });
     },

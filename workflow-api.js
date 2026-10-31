@@ -3,6 +3,21 @@ import { validatePlan, compilerMessages, summaryMessages, POLICY_VERSION, isoDay
 import { admittedCall, pruneConfigured, statusError } from './engine.js';
 
 export function mountWorkflows(app, { store, callPrune, env, fingerprint }) {
+  app.get('/api/requests', async (req, res) => res.json({ items: Object.entries((await store.read(req.owner)).requests).map(([id, row]) => ({ id, status: row.status, startedAt: row.startedAt })) }));
+  app.post('/api/requests/:id/reconcile', async (req, res) => {
+    if (req.body?.receiptReviewed !== true) throw statusError(400, 'Review the matching Prune request or receipt before acknowledging an unknown outcome');
+    await store.mutate(req.owner, state => {
+      const request = state.requests[req.params.id];
+      if (!request) throw statusError(404, 'Request not found');
+      if (request.status !== 'pending') throw statusError(409, 'Only pending requests need reconciliation');
+      if (Date.now() - new Date(request.startedAt).getTime() < 60000) throw statusError(409, 'Wait at least one minute for the active call to finish');
+      request.status = 'acknowledged';
+      state.history.unshift({ id: randomUUID(), kind: 'reconciliation', at: new Date().toISOString(), requestId: req.params.id,
+        evidence: 'User acknowledged an unknown outcome after reviewing Prune. This does not refund or retry the original request.' });
+      state.history = state.history.slice(0, 100);
+    });
+    res.json({ acknowledged: true });
+  });
   app.get('/api/workflows', async (req, res) => res.json({ items: (await store.read(req.owner)).workflows }));
   app.post('/api/workflows', async (req, res) => {
     const plan = validatePlan(req.body?.plan);

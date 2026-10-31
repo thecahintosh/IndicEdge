@@ -6,11 +6,11 @@ Durable admission and idempotency, owner-scoped PostgreSQL state, local-only dev
 ## 2. Order workflow and disclosure boundary — implemented
 Bounded English/Hindi/Hinglish intent templates; manual rule editor; strict plan schema; browser-local CSV/JSON parsing, filtering, exact money and bilingual templates; saved workflow API; minimal aggregate audit. Optional approved Prune compilation/explanation. Unit/API tests cover stale-data avoidance, unknown actions, missing evidence, policy violations, tenant separation, replay and malformed data.
 
-## 3. Workspace redesign — in progress
+## 3. Workspace redesign — implemented
 Black monochrome, operational typography, visible source/rules/disclosure/result flow, explicit loading and error states, workflow library, history and honest compute status. Short state transitions with reduced-motion alternatives.
 
-## 4. End-to-end verification — next
-Desktop/mobile browser checks, keyboard/reduced-motion behavior, deterministic workflow rerun on changed records, setup documentation, Docker build, CI, and final verification push. Cloud integration tests require the user's existing local configuration path.
+## 4. End-to-end verification — implemented locally; live cloud check pending
+Desktop/mobile browser checks, keyboard/reduced-motion behavior, deterministic workflow rerun on changed records, setup documentation, Docker build and CI are implemented. Browser scenarios pass with zero axe violations in the tested states. Cloud integration tests require the user's existing local configuration path. Signed receipt collection and a measured full-context baseline remain presentation prerequisites, not fabricated achievements.
 
 ## 5. GPU document engine — planned
 Review the supplied CUDA retrieval worker independently; add resource ceilings, owner isolation and measured crossover. Integrate only with a document retrieval use case where it contributes. Telemetry in this build is availability only, not acceleration.

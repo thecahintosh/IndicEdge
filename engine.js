@@ -24,9 +24,15 @@ export function createPrune(env = process.env) {
 }
 
 export async function admittedCall(store, owner, id, fingerprint, operation, limit = 30, now = new Date()) {
-  if (!/^[0-9a-f-]{36}$/i.test(id ?? '')) throw statusError(400, 'A UUID Idempotency-Key is required');
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id ?? '')) throw statusError(400, 'A UUID Idempotency-Key is required');
   const day = now.toISOString().slice(0, 10);
   const cached = await store.mutate(owner, state => {
+    // Keep unknown outcomes until explicitly reconciled; expire finished replay
+    // payloads after seven days and stop growth at a hard ceiling.
+    for (const [key, request] of Object.entries(state.requests)) {
+      if (request.status !== 'pending' && now - new Date(request.startedAt) > 7 * 86400000) delete state.requests[key];
+    }
+    for (const key of Object.keys(state.daily)) if (key < new Date(now - 8 * 86400000).toISOString().slice(0, 10)) delete state.daily[key];
     const prior = state.requests[id];
     if (prior) {
       if (prior.fingerprint !== fingerprint) throw statusError(409, 'Request key belongs to a different operation');
@@ -34,6 +40,7 @@ export async function admittedCall(store, owner, id, fingerprint, operation, lim
       throw statusError(409, 'This call already started. Check history; do not automatically retry.');
     }
     if (Object.values(state.requests).some(r => r.status === 'pending')) throw statusError(409, 'An AI call is pending or has an unknown outcome. Check its receipt before another call.');
+    if (Object.keys(state.requests).length >= 1000) throw statusError(429, 'AI request ledger is full. Local workflows remain available.');
     if ((state.daily[day] ?? 0) >= limit) throw statusError(429, 'Daily AI call limit reached. Local workflows remain available.');
     state.daily[day] = (state.daily[day] ?? 0) + 1;
     state.requests[id] = { status: 'pending', fingerprint, startedAt: now.toISOString() };

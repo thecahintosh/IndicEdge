@@ -51,3 +51,29 @@ test('API rejects foreign origins, invalid JSON, missing auth and backend file a
   assert.equal((await fetch(url + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{bad' })).status, 400);
   assert.equal((await fetch(url + '/server.js')).status, 404);
 });
+test('provider success with failed persistence returns result and never invites a paid retry', async () => {
+  let writes = 0;
+  const store = { mutate: async (owner, action) => {
+    writes++;
+    if (writes === 1) return action({ workflows: [], requests: {}, history: [], daily: {} });
+    throw Error('database temporarily unavailable');
+  } };
+  const result = await admittedCall(store, 'a', randomUUID(), 'safe', async () => ({ answer: 'Completed', metadata: { fixture: true } }));
+  assert.equal(result.answer, 'Completed');
+  assert.match(result.persistenceWarning, /Do not repeat/);
+});
+test('local mutation rolls back on validation failure and namespaces stay isolated', async t => {
+  const { store } = fixture(t);
+  await store.mutate('a', state => { state.workflows.push({ name: 'private' }); });
+  await assert.rejects(store.mutate('a', state => { state.workflows.push({ name: 'bad' }); throw Error('reject'); }));
+  assert.equal((await store.read('a')).workflows.length, 1);
+  assert.equal((await store.read('b')).workflows.length, 0);
+});
+test('unknown idempotency outcomes are never automatically repeated', async t => {
+  const { store } = fixture(t);
+  const id = randomUUID();
+  await store.mutate('a', state => { state.requests[id] = { status: 'pending', fingerprint: 'same', startedAt: new Date().toISOString() }; });
+  let calls = 0;
+  await assert.rejects(admittedCall(store, 'a', id, 'same', async () => { calls++; return {}; }), { status: 409 });
+  assert.equal(calls, 0);
+});

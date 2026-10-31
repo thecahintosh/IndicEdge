@@ -1,0 +1,23 @@
+# Validation — 31 October 2026
+
+## Passed locally
+
+- 19 unit/API tests (`npm test`).
+- Real PostgreSQL 17 integration: 15 concurrent state updates across two connections preserve every update; simultaneous identical billable requests reach the provider fixture once; completed results replay; owners remain isolated; Supabase browser roles have no table SELECT permission.
+- Two browser scenarios with desktop 1440px and mobile 390px/320px checks: complete workflow, Hindi drafts, fresh-data rerun, saved plans, CSV download, rejected sources, source clearing, unsupported instructions, keyboard dialog focus and source-free network audit payloads.
+- Axe: no violations in tested workbench/result/mobile states. This is automated coverage, not a claim of complete accessibility certification.
+- `npm audit --omit=dev`: zero reported vulnerabilities at verification time.
+- Docker image build with locked production dependencies and non-root runtime.
+- Independent Impeccable finish review: **ship** at supplied screenshot/test scope. Four captures were inspected; motion reviewed in code, not through human device testing.
+
+## Significant integration correction
+
+The disposable PostgreSQL run found that Drizzle configures postgres-js JSON serialization differently from a standalone raw client. Raw locked writes now explicitly JSON-encode and cast to JSONB. The real database concurrency/idempotency suite passed after the fix.
+
+## Not verified or not implemented
+
+- Live private Supabase Auth configuration and live Prune provider calls require access to the user's existing local environment configuration. No keys were requested in chat or committed.
+- No actual provider charge, signed receipt or savings baseline has been manufactured. Collect a real approved call and matching receipt before submission.
+- GPU telemetry is available on the host; CUDA/OCR/document-retrieval execution and Sarvam speech remain roadmap work.
+- Browser audit totals are client-reported, not independently attested. Local-mode persistence is intentionally single-process.
+- GitHub Actions is configured; a local pass does not itself prove the remote Actions run completed.

@@ -1,11 +1,352 @@
 {
-  "name": "IndicEdge monochrome workspace",
-  "mode": "operate",
-  "tokens": {
-    "canvas": "#0b0b0b", "surface": "#101010", "raised": "#171717",
-    "ink": "#ededed", "muted": "#a3a3a3", "faint": "#858585",
-    "line": "#292929", "lineStrong": "#3e3e3e", "accent": "#e7e7e7",
-    "font": "Geist", "easeOut": "cubic-bezier(.23,1,.32,1)", "pressMs": 160, "entryMs": 220
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-31T11:42:58.821Z",
+  "title": "Design System: IndicEdge",
+  "extensions": {
+    "colorMeta": {
+      "canvas": {
+        "role": "neutral",
+        "displayName": "Canvas",
+        "canonical": "#0b0b0b",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Surface",
+        "canonical": "#101010",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "raised": {
+        "role": "neutral",
+        "displayName": "Raised surface",
+        "canonical": "#171717",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Main ink",
+        "canonical": "#ededed",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Supporting ink",
+        "canonical": "#a3a3a3",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "faint": {
+        "role": "neutral",
+        "displayName": "Metadata ink",
+        "canonical": "#858585",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Divider",
+        "canonical": "#292929",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "line-strong": {
+        "role": "neutral",
+        "displayName": "Major boundary",
+        "canonical": "#3e3e3e",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Light action",
+        "canonical": "#e7e7e7",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "action-ink": {
+        "role": "neutral",
+        "displayName": "Dark action ink",
+        "canonical": "#111111",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "active-nav": {
+        "role": "neutral",
+        "displayName": "Current navigation",
+        "canonical": "#222",
+        "tonalRamp": [
+          "oklch(15% 0 0)",
+          "oklch(26.43% 0 0)",
+          "oklch(37.86% 0 0)",
+          "oklch(49.29% 0 0)",
+          "oklch(60.71% 0 0)",
+          "oklch(72.14% 0 0)",
+          "oklch(83.57% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Page heading",
+        "purpose": "Fluid desktop headings; 32px and line-height 1.2 at widths up to 700px."
+      },
+      "title": {
+        "displayName": "Section title",
+        "purpose": "Default section headings; result/dialog titles override to 20px, weight 500."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default 14px text; supporting copy uses 11–13px."
+      },
+      "instruction": {
+        "displayName": "Instruction",
+        "purpose": "17px desktop instruction textarea; 16px at widths up to 700px."
+      },
+      "label": {
+        "displayName": "Metadata and labels",
+        "purpose": "11px visible type floor, including mobile metadata and labels."
+      },
+      "data": {
+        "displayName": "Serialized data",
+        "purpose": "11px Consolas for actual serialized data and payloads."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "press",
+        "value": "160ms cubic-bezier(.23,1,.32,1)",
+        "purpose": "Button scale(0.98) press; background and border separately use 160ms ease."
+      },
+      {
+        "name": "entry",
+        "value": "220ms cubic-bezier(.23,1,.32,1)",
+        "purpose": "WAAPI reveal: opacity .55 → 1, translateY(6px) → 0, fill backwards. Results, rules, dialogs and AI explanations."
+      },
+      {
+        "name": "completed-step-stagger",
+        "value": "45ms",
+        "purpose": "Four completed step icons reveal after execution with 0/45/90/135ms delays; completed-result feedback, not progress."
+      },
+      {
+        "name": "pipeline-state",
+        "value": "220ms ease",
+        "purpose": "Pipeline fill, border, icon opacity and label color."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "100ms ease",
+        "purpose": "Skip WAAPI entries and stagger; remove button transforms; retain 100ms button color/border and navigation/pipeline feedback."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "mobile",
+        "value": "700px",
+        "purpose": "max-width: horizontal navigation, 20px gutters, two-column rules/date full width, stacked supporting content."
+      },
+      {
+        "name": "single-column-workbench",
+        "value": "1000px",
+        "purpose": "max-width: hide execution explainer; retain all workflow controls."
+      },
+      {
+        "name": "compact-desktop",
+        "value": "1200px",
+        "purpose": "max-width: 196px sidebar, 190px explainer, 24px gap, 28px gutters, stacked run bar."
+      },
+      {
+        "name": "wide-desktop",
+        "value": "1600px",
+        "purpose": "min-width: 264px explainer, 56px gap and main top padding."
+      }
+    ],
+    "focus": {
+      "value": "2px solid var(--ink)",
+      "offset": "4px",
+      "instructionOffset": "5px"
+    },
+    "backdrop": {
+      "value": "rgb(0 0 0 / .78)",
+      "purpose": "Native modal backdrop."
+    }
   },
-  "constraints": ["black minimalist", "reduced motion", "source stays in browser", "no fabricated metrics"]
+  "components": [
+    {
+      "name": "Primary button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main workflow action with light fill.",
+      "html": "<button class=\"ds-button ds-primary ds-focus\">Generate drafts</button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#292929);border-radius:6px;background:var(--raised,#171717);color:var(--ink,#ededed);font-family:Geist,'Segoe UI',sans-serif;font-size:12px;font-weight:500;line-height:20px;min-height:38px;padding:8px 14px;cursor:pointer;transition:transform var(--fast,160ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),background var(--fast,160ms) ease,border-color var(--fast,160ms) ease}.ds-button:active{transform:scale(.98)}.ds-button:disabled{opacity:.4;cursor:not-allowed}.ds-button:disabled:active{transform:none}.ds-focus:focus-visible{outline:2px solid var(--ink,#ededed);outline-offset:4px}@media(hover:hover) and (pointer:fine){.ds-button:not(:disabled):hover{background:#282828;border-color:#505050}}@media(prefers-reduced-motion:reduce){.ds-button{transition:background 100ms ease,border-color 100ms ease;transform:none!important}}.ds-primary{background:var(--accent,#e7e7e7);color:#111;border-color:var(--accent,#e7e7e7)}@media(hover:hover) and (pointer:fine){.ds-primary:not(:disabled):hover{background:#fff;border-color:#fff}}"
+    },
+    {
+      "name": "Secondary button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Raised secondary control.",
+      "html": "<button class=\"ds-button ds-focus\">Refresh</button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#292929);border-radius:6px;background:var(--raised,#171717);color:var(--ink,#ededed);font-family:Geist,'Segoe UI',sans-serif;font-size:12px;font-weight:500;line-height:20px;min-height:38px;padding:8px 14px;cursor:pointer;transition:transform var(--fast,160ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),background var(--fast,160ms) ease,border-color var(--fast,160ms) ease}.ds-button:active{transform:scale(.98)}.ds-button:disabled{opacity:.4;cursor:not-allowed}.ds-button:disabled:active{transform:none}.ds-focus:focus-visible{outline:2px solid var(--ink,#ededed);outline-offset:4px}@media(hover:hover) and (pointer:fine){.ds-button:not(:disabled):hover{background:#282828;border-color:#505050}}@media(prefers-reduced-motion:reduce){.ds-button{transition:background 100ms ease,border-color 100ms ease;transform:none!important}}"
+    },
+    {
+      "name": "Subtle button",
+      "kind": "button",
+      "refersTo": "button-subtle",
+      "description": "Transparent supporting action with fine border.",
+      "html": "<button class=\"ds-button ds-subtle ds-focus\">Save workflow</button>",
+      "css": ".ds-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line,#292929);border-radius:6px;background:var(--raised,#171717);color:var(--ink,#ededed);font-family:Geist,'Segoe UI',sans-serif;font-size:12px;font-weight:500;line-height:20px;min-height:38px;padding:8px 14px;cursor:pointer;transition:transform var(--fast,160ms) var(--ease-out,cubic-bezier(.23,1,.32,1)),background var(--fast,160ms) ease,border-color var(--fast,160ms) ease}.ds-button:active{transform:scale(.98)}.ds-button:disabled{opacity:.4;cursor:not-allowed}.ds-button:disabled:active{transform:none}.ds-focus:focus-visible{outline:2px solid var(--ink,#ededed);outline-offset:4px}@media(hover:hover) and (pointer:fine){.ds-button:not(:disabled):hover{background:#282828;border-color:#505050}}@media(prefers-reduced-motion:reduce){.ds-button{transition:background 100ms ease,border-color 100ms ease;transform:none!important}}.ds-subtle{background:transparent}"
+    },
+    {
+      "name": "Standard field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Labelled dark field with visible focus.",
+      "html": "<label class=\"ds-label\" for=\"ds-workflow\">Workflow name</label><input class=\"ds-input ds-focus\" id=\"ds-workflow\" value=\"Overdue order follow-up\" placeholder=\"Name the workflow\">",
+      "css": ".ds-label{display:block;font-family:Geist,'Segoe UI',sans-serif;font-size:11px;color:var(--muted,#a3a3a3);margin-bottom:8px}.ds-input{font-family:Geist,'Segoe UI',sans-serif;width:100%;height:39px;min-width:0;border:1px solid var(--line,#292929);border-radius:5px;background:var(--surface,#101010);padding:8px 10px;color:var(--ink,#ededed);font-size:12px;caret-color:var(--ink,#ededed)}.ds-input::placeholder{color:var(--faint,#858585)}.ds-focus:focus-visible{outline:2px solid var(--ink,#ededed);outline-offset:4px}"
+    },
+    {
+      "name": "Workspace navigation",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "Current-page fill with muted secondary navigation; becomes a scrollable row on mobile.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Workspace preview\"><a class=\"ds-nav-item ds-current ds-focus\" href=\"#workbench\" aria-current=\"page\">Workbench</a><a class=\"ds-nav-item ds-focus\" href=\"#library\">Saved workflows</a></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;gap:5px}.ds-nav-item{padding:10px 12px;min-height:42px;display:flex;align-items:center;gap:10px;color:var(--muted,#a3a3a3);font-family:Geist,'Segoe UI',sans-serif;font-size:12px;line-height:1.6;border-radius:5px;text-decoration:none;transition:background var(--fast,160ms) ease,color var(--fast,160ms) ease}.ds-current{background:#222;color:var(--ink,#ededed)}.ds-focus:focus-visible{outline:2px solid var(--ink,#ededed);outline-offset:4px}@media(hover:hover) and (pointer:fine){.ds-nav-item:hover{color:var(--ink,#ededed);background:#1b1b1b}}@media(max-width:700px){.ds-nav{flex-direction:row;overflow:auto;gap:8px}.ds-nav-item{white-space:nowrap;padding:8px 10px;min-height:38px;font-size:11px}}@media(prefers-reduced-motion:reduce){.ds-nav-item{transition-duration:100ms}}"
+    },
+    {
+      "name": "Boundary badge",
+      "kind": "chip",
+      "refersTo": "badge",
+      "description": "Static bordered context label with readable metadata.",
+      "html": "<span class=\"ds-badge\">Browser-local execution</span>",
+      "css": ".ds-badge{display:inline-block;font-family:Geist,'Segoe UI',sans-serif;font-size:11px;border:1px solid var(--line,#292929);border-radius:4px;color:var(--muted,#a3a3a3);padding:3px 7px;line-height:16px;white-space:nowrap}"
+    },
+    {
+      "name": "Instruction workbench",
+      "kind": "card",
+      "refersTo": "workbench",
+      "description": "Primary task surface with stronger boundary and borderless editable instruction.",
+      "html": "<section class=\"ds-workbench\" aria-labelledby=\"ds-task-title\"><h2 class=\"ds-task-title\" id=\"ds-task-title\">What needs doing?</h2><textarea class=\"ds-instruction ds-focus\" aria-label=\"Describe your order reminder task\" placeholder=\"Find orders overdue by at least 5 days and prepare Hindi reminder drafts\"></textarea></section>",
+      "css": ".ds-workbench{border:1px solid var(--line-strong,#3e3e3e);background:var(--surface,#101010);border-radius:12px;padding:22px 24px 0;color:var(--ink,#ededed);font-family:Geist,'Segoe UI',sans-serif}.ds-task-title{font-size:15px;font-weight:550;letter-spacing:-.015em;line-height:1.6;margin:0}.ds-instruction{display:block;resize:vertical;min-height:102px;width:100%;color:var(--ink,#ededed);background:transparent;border:0;padding:20px 0 14px;font-family:Geist,'Segoe UI',sans-serif;font-size:17px;line-height:1.6;caret-color:var(--ink,#ededed)}.ds-instruction::placeholder{color:#8c8c8c}.ds-focus:focus-visible{outline:2px solid var(--ink,#ededed);outline-offset:4px}.ds-instruction:focus-visible{outline-offset:5px}@media(max-width:700px){.ds-workbench{padding:18px 18px 0}.ds-task-title{font-size:14px}.ds-instruction{font-size:16px;min-height:124px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Operate workspace",
+    "overview": "A black, minimalist working surface puts the instruction, editable rules, source boundary and execution together. Secondary views hold saved plans, source inspection and evidence. The hierarchy comes from typography, spacing and quiet boundaries; motion explains feedback and state changes.",
+    "keyCharacteristics": [
+      "Monochrome surfaces and a light primary action.",
+      "Compact supporting information with readable type.",
+      "Stable navigation and purposeful, brief motion.",
+      "Explicit source, execution and disclosure boundaries."
+    ],
+    "rules": [
+      {
+        "name": "The Monochrome Rule",
+        "body": "Use text, shape and contrast to communicate status; status never depends on color alone. Avoid decorative color.",
+        "section": "colors"
+      },
+      {
+        "name": "The Readable Metadata Rule",
+        "body": "Keep visible text at or above the shipped (11px) floor when extending this workspace.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "**Do** keep visible text at or above 11px, including mobile metadata and serialized data.",
+      "**Do** use monochrome contrast, text-bearing statuses and visible keyboard focus.",
+      "**Do** preserve workflow controls when the execution explainer is hidden.",
+      "**Do** treat step reveals as feedback for an already completed run and respect reduced motion.",
+      "**Do** distinguish browser-local execution, backend persistence and approved remote AI disclosure."
+    ],
+    "donts": [
+      "**Don't** add decorative color, shadows, gradients or idle animation.",
+      "**Don't** present fictional records as customer data or GPU telemetry as acceleration.",
+      "**Don't** imply that browser-reported evidence is independently attested or that signature presence verifies a receipt.",
+      "**Don't** imply source rows or drafts are uploaded when only aggregate run evidence and a source hash are persisted."
+    ]
+  }
 }
