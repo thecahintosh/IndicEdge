@@ -1,5 +1,11 @@
 # Validation — 31 October 2026
 
+## Document source update
+
+- 32 unit/API tests include text line provenance, UTF-8/UTF-16 decoding, binary/encoding rejection, PDF text grouping and supported-file/size boundaries.
+- Seven browser scenarios include self-hosted PDF text extraction/filtering, no-text-layer OCR notices, Word body/table extraction and numeric analysis, and inert plain-text markup alongside all prior dataset/order regressions.
+- Parser libraries, workers, CMaps, fonts and decompression code are self-hosted; document source content is not sent to an external model. This does not claim OCR, perfect PDF layout reconstruction or full Word feature fidelity.
+
 ## Arbitrary dataset update
 
 - 28 unit/API tests now include arbitrary/Unicode column names, CSV/TSV/JSONL, partial schemas, field constraints, exact decimal calculations, mixed numeric rejection, grouping, sorting, filtering, cash-flow reconciliation, nested values and worksheet validation.

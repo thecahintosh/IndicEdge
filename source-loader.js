@@ -7,15 +7,15 @@ export function checkXlsxArchive(buffer) {
   for (let pos = bytes.byteLength - 22; pos >= Math.max(0, bytes.byteLength - 65557); pos--) {
     if (bytes.getUint32(pos, true) === 0x06054b50) { end = pos; break; }
   }
-  if (end < 0) throw new Error('This is not a readable XLSX ZIP archive');
+  if (end < 0) throw new Error('This is not a readable document ZIP archive');
   const entries = bytes.getUint16(end + 10, true);
   let position = bytes.getUint32(end + 16, true), expanded = 0;
-  if (entries > 2000 || position >= bytes.byteLength) throw new Error('Workbook archive exceeds the supported limits');
+  if (entries > 2000 || position >= bytes.byteLength) throw new Error('Document archive exceeds the supported limits');
   for (let i = 0; i < entries; i++) {
-    if (position + 46 > bytes.byteLength || bytes.getUint32(position, true) !== 0x02014b50) throw new Error('Workbook archive directory is invalid');
-    if (bytes.getUint16(position + 8, true) & 1) throw new Error('Encrypted workbooks are not supported; save an unencrypted XLSX copy');
+    if (position + 46 > bytes.byteLength || bytes.getUint32(position, true) !== 0x02014b50) throw new Error('Document archive directory is invalid');
+    if (bytes.getUint16(position + 8, true) & 1) throw new Error('Encrypted archives are not supported; upload an unencrypted copy');
     expanded += bytes.getUint32(position + 24, true);
-    if (expanded > 30_000_000) throw new Error('Expanded workbook exceeds 30 MB; export a smaller worksheet as CSV');
+    if (expanded > 30_000_000) throw new Error('Expanded document exceeds 30 MB; use a smaller file');
     position += 46 + bytes.getUint16(position + 28, true) + bytes.getUint16(position + 30, true) + bytes.getUint16(position + 32, true);
   }
 }
@@ -33,6 +33,10 @@ export function worksheetRecords(matrix) {
 }
 export async function readDatasetFile(file) {
   if (file.size > 5_000_000) throw new Error('Choose a file smaller than 5 MB');
+  if (/\.(pdf|docx|txt|md|log)$/i.test(file.name)) {
+    const { readDocumentFile } = await import('./document-reader.js');
+    return readDocumentFile(file);
+  }
   if (/\.xlsx$/i.test(file.name)) {
     const buffer = await file.arrayBuffer(); checkXlsxArchive(buffer);
     const sheets = await new Promise((resolve, reject) => {
@@ -50,7 +54,7 @@ export async function readDatasetFile(file) {
     if (!result.some(sheet => sheet.rows.length)) throw new Error(`No usable worksheet: ${result[0]?.error || 'workbook is empty'}`);
     return { sheets: result, note: 'Excel formulas are not executed. Only saved/cached values are read; blank formula results remain missing. Save/recalculate in Excel if needed.' };
   }
-  if (!/\.(csv|tsv|json|jsonl|ndjson)$/i.test(file.name)) throw new Error('Supported dataset files: CSV, TSV, JSON, JSONL/NDJSON and XLSX. Export other formats to one of these.');
+  if (!/\.(csv|tsv|json|jsonl|ndjson)$/i.test(file.name)) throw new Error('Supported files: PDF, Word DOCX, TXT/Markdown/log, CSV, TSV, JSON/JSONL and XLSX. Legacy DOC/XLS, images and other binary formats need conversion or OCR first.');
   const rows = parseSource(await file.text(), file.name); validateDataset(rows);
   return { sheets: [{ name: 'Data', rows }], note: '' };
 }

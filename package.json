@@ -10,7 +10,8 @@
     "test": "node --test tests/*.test.js",
     "test:browser": "playwright test",
     "test:postgres": "node tests/postgres.integration.js",
-    "build:spreadsheet-reader": "node scripts/build-spreadsheet-reader.js"
+    "build:spreadsheet-reader": "node scripts/build-spreadsheet-reader.js",
+    "build:document-readers": "node scripts/build-document-readers.js"
   },
   "engines": {
     "node": ">=22"
@@ -31,6 +32,7 @@
     "@playwright/test": "1.64.1",
     "esbuild": "0.28.2",
     "fflate": "0.8.3",
+    "pdfjs-dist": "6.4.299",
     "read-excel-file": "9.3.14"
   }
 }

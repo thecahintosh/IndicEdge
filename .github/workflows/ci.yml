@@ -22,6 +22,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:spreadsheet-reader
+      - run: npm run build:document-readers
       - run: npm test
       - run: npm run test:postgres
         env:
