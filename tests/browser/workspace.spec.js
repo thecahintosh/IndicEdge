@@ -54,7 +54,7 @@ test('desktop and mobile UI, accessibility, fresh-data reuse and zero source dis
   await page.getByRole('button', { name: 'Clear source', exact: true }).click();
   await expect(page.locator('#draftList')).toBeEmpty();
   await expect(page.locator('#sourceRows')).toBeEmpty();
-  await page.locator('#sourceFile').setInputFiles({ name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('order_id\nmissing fields') });
+  await page.locator('#sourceFile').setInputFiles({ name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('column\n"unclosed') });
   await expect(page.locator('#sourceName')).toHaveText('Source rejected');
   await page.getByRole('link', { name: 'Workbench', exact: true }).click();
   await expect(page.locator('#runWorkflow')).toBeDisabled();

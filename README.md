@@ -1,5 +1,7 @@
 # IndicEdge
 
+**Dataset update:** Source loading now supports arbitrary schemas in CSV, TSV, JSON/JSONL and XLSX. Missing columns produce operation-specific notes instead of rejecting an otherwise valid dataset. Use **Source data → Analyze fields** for counts, sums/averages/min/max, filters, sorting, grouping and cash-flow summaries. See [DATASETS.md](DATASETS.md) for the complete supported formats, limits and usage. The order-specific rules below still apply when running reminder drafts.
+
 A task-aware workflow workspace for overdue-order follow-ups. Describe a supported task in English, Hindi or Hinglish, review explicit rules, inspect disclosure, and generate editable Hindi/English drafts. Save the rules and rerun them on fresh records without another planning call.
 
 ## Run the complete local demo
@@ -46,7 +48,7 @@ order_id,customer_name,contact,due_date,amount,status
 ORD-2001,Aarav Mehta,aarav@example.test,2026-10-20,2450.50,pending
 ```
 
-Required status values: `pending`, `paid`, `cancelled`. Dates are strict `YYYY-MM-DD`; amounts are non-negative INR decimals with at most two decimal places. Maximum 2,000 records / 750 KB. Duplicate IDs, unknown statuses and malformed rows block execution. Overdue comparisons use calendar days relative to the editable IST evaluation date; the threshold is inclusive.
+For order reminders, required status values are `pending`, `paid`, `cancelled`. Dates are strict `YYYY-MM-DD`; amounts are non-negative INR decimals with at most two decimal places. Maximum 2,000 orders. Duplicate IDs, unknown statuses and malformed order values block reminder execution, while the dataset stays loaded for inspection and other operations. Generic import allows 5 MB, 5,000 records and 200 columns. Overdue comparisons use calendar days relative to the editable IST evaluation date; the threshold is inclusive.
 
 Source rows and drafts remain in browser memory. They are cleared by reload, clear-source or sign-out. Extra source fields such as bank details and unrelated notes are excluded from the execution representation. Audit requests send aggregate totals, validated rules, date and a source hash. This hash is not encryption or independent proof. In hosted mode these audit records reach your backend; that is not the same as the whole system being local.
 

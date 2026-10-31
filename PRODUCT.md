@@ -11,6 +11,7 @@ Small-business owners reviewing overdue orders and preparing Hindi/English custo
 Convert a supported everyday instruction into a validated reusable workflow. Process fresh records with minimal external disclosure and auditable model usage.
 
 ## Capabilities and Constraints
+Sources can now have arbitrary schemas. CSV/TSV, JSON/JSONL and XLSX datasets load locally, with per-operation missing-field/invalid-value notes. Generic local operations include profiling, count, numeric aggregates, filters, sorting, grouping and named cash-flow summaries. These operations are separate from the bounded order-reminder plan, which retains its original schema and approval rules. Import limits are 5 MB / 5,000 records / 200 columns; order execution is capped at 2,000 orders. Unstructured document processing remains outside this dataset change.
 Existing vanilla HTML/CSS/JavaScript, Express, Supabase Auth, Drizzle/PostgreSQL and Prune are retained. Every remote generative call goes through Prune. Customer messaging remains draft/export only. Local means the backend runs on the user's machine; remote hosting does not make uploaded data local. GPU availability must not be described as acceleration.
 
 ## Brand Commitments

@@ -1,10 +1,13 @@
 import { understandIntent, validatePlan, executeWorkflow, normalizeOrders, businessDate, formatMoney,
   disclosureFor, compilerMessages, summaryMessages, POLICY_VERSION } from './workflow.js';
-import { parseSource, sampleOrders, exportCSV } from './source.js';
+import { sampleOrders, exportCSV } from './source.js';
+import { readDatasetFile } from './source-loader.js';
+import { validateDataset, sourceCapabilities } from './dataset.js';
+import { setupDatasetUI } from './dataset-ui.js';
 
 const $ = id => document.getElementById(id);
 const state = { config: null, session: null, auth: null, generation: 0, controllers: new Set(), rows: [],
-  sourceName: 'Fictional example orders', synthetic: true, result: null, workflows: [], pendingAI: null, view: 'workbench', intentBlocked: false };
+  sourceName: 'Fictional example orders', synthetic: true, result: null, workflows: [], pendingAI: null, view: 'workbench', intentBlocked: false, sheets: [], sourceEpoch: 0 };
 const titles = { workbench: 'Workbench', library: 'Saved workflows', sources: 'Source data', history: 'Run history', compute: 'Compute & receipts' };
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const node = (tag, className, text) => { const el = document.createElement(tag); if (className) el.className = className; if (text !== undefined) el.textContent = text; return el; };
@@ -58,8 +61,10 @@ function invalidate() {
   $('resultsPanel').classList.add('hidden'); $('aiExplanation').classList.add('hidden');
   $('draftList').replaceChildren(); $('resultSummary').textContent = ''; $('resultFacts').replaceChildren(); $('aiExplanation').textContent = '';
   for (const id of ['stepUnderstand', 'stepMinimize', 'stepExecute', 'stepReview']) $(id).classList.remove('complete');
-  $('readyLabel').textContent = state.intentBlocked ? 'Review the changed instruction first' : state.rows.length ? 'Ready when you are' : 'Load source records first';
-  $('runWorkflow').disabled = !state.rows.length || state.intentBlocked;
+  const orderSupport = state.rows.length ? sourceCapabilities(state.rows).order : null;
+  $('readyLabel').textContent = orderSupport && !orderSupport.available ? 'Order reminders unavailable for this source' : state.intentBlocked ? 'Review the changed instruction first' : state.rows.length ? 'Ready when you are' : 'Load source records first';
+  $('runWorkflow').disabled = !state.rows.length || state.intentBlocked || !orderSupport?.available;
+  $('sourceConstraintNote').textContent = orderSupport && !orderSupport.available ? `${orderSupport.note} Your dataset is loaded; use Source data → Analyze fields for other operations.` : '';
   // Any open disclosure belongs to the old inputs.
   if ($('disclosureDialog').open) $('disclosureDialog').close();
   state.pendingAI = null;
@@ -79,21 +84,24 @@ function setView(view) {
 }
 function route(view) { if (location.hash === `#${view}`) setView(view); else location.hash = view; }
 function renderSource() {
-  const normalized = state.rows.length ? normalizeOrders(state.rows) : [];
+  const columns = state.rows.length ? validateDataset(state.rows) : [];
   $('sourceTitle').textContent = state.sourceName;
   $('sourceName').textContent = state.sourceName;
   $('sourceDescription').textContent = `${state.rows.length} ${state.synthetic ? 'fictional ' : ''}records · held in this browser`;
   $('sourceCount').textContent = `${state.rows.length} records${state.synthetic ? ' · fictional' : ''}`;
-  $('sourceRows').replaceChildren();
-  for (const row of normalized.slice(0, 100)) {
-    const tr = node('tr');
-    for (const value of [row.order_id, row.customer_name, row.contact, row.due_date, formatMoney(row.amountPaise), row.status]) tr.append(node('td', '', value));
-    $('sourceRows').append(tr);
-  }
-  $('sourceMessage').textContent = normalized.length > 100 ? 'Showing the first 100 records. Execution includes every loaded record.' : normalized.length ? '' : 'No source loaded. Choose a file or use the fictional example.';
+  $('sourceFieldCount').textContent = `${columns.length} fields · browser-local`;
+  datasetUI.render();
+  $('sourceMessage').textContent = state.rows.length > 100 ? 'Showing the first 100 records. Operations include every loaded record.' : state.rows.length ? 'Dataset loaded. Review available operations and missing-field notes below.' : 'No source loaded. Choose a file or use the fictional example.';
   invalidate();
 }
+const datasetUI = setupDatasetUI({ getRows: () => state.rows, reveal, useRows: (rows, name) => {
+  state.rows = rows; state.sourceName = `${state.sourceName} · ${name}`; renderSource(); notice('Active source updated to the derived rows. Reload the original file to restore it.');
+} });
+function clearWorkbook() {
+  state.sourceEpoch++; state.sheets = []; $('sourceSheet').replaceChildren(); $('sheetControl').classList.add('hidden'); $('sourceImportNote').textContent = '';
+}
 function loadSample() {
+  clearWorkbook();
   state.rows = sampleOrders($('asOf').value || businessDate()); state.synthetic = true; state.sourceName = 'Fictional example orders'; renderSource();
 }
 async function run() {
@@ -184,6 +192,7 @@ function setSession(session) {
   state.session = session; state.workflows = []; state.pendingAI = null;
   $('libraryCount').textContent = '0'; $('historyList').replaceChildren(); $('workflowList').replaceChildren();
   state.rows = []; state.sourceName = 'No source loaded'; state.synthetic = false; renderSource();
+  clearWorkbook();
   $('instruction').value = ''; $('draftList').replaceChildren(); $('aiExplanation').textContent = '';
   for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
   $('identity').textContent = session?.user?.email || 'Workspace';
@@ -223,15 +232,25 @@ on('runWorkflow', 'click', run);
 on('openSource', 'click', () => route('sources'));
 on('newWorkflow', 'click', () => { $('instruction').value = ''; applyPlan({ version: 1, kind: 'overdue_reminders', minDaysOverdue: 5, language: 'hi', includeSummary: true }, 'Set directly · no model call'); route('workbench'); $('instruction').focus(); notice('New rules started. Your currently loaded source is unchanged.'); });
 on('loadSample', 'click', () => { loadSample(); notice('Loaded six fictional records. Review the source, then return to the workbench.'); });
-on('clearSource', 'click', () => { state.rows = []; state.sourceName = 'No source loaded'; state.synthetic = false; $('sourceFile').value = ''; renderSource(); });
+on('clearSource', 'click', () => { clearWorkbook(); state.rows = []; state.sourceName = 'No source loaded'; state.synthetic = false; $('sourceFile').value = ''; renderSource(); });
 on('sourceFile', 'change', async e => {
   const file = e.target.files[0]; if (!file) return;
+  clearWorkbook(); const epoch = state.sourceEpoch;
+  $('sourceMessage').textContent = 'Reading the dataset in this browser…'; $('sourceFile').disabled = true;
   try {
-    if (file.size > 750000) throw new Error('Choose a source smaller than 750 KB');
-    const rows = parseSource(await file.text(), file.name); normalizeOrders(rows);
-    state.rows = rows; state.synthetic = false; state.sourceName = file.name; renderSource(); notice('Source parsed in this browser. Review the records and generate fresh drafts.');
-  } catch (error) { state.rows = []; state.sourceName = 'Source rejected'; state.synthetic = false; renderSource(); throw error; }
-  finally { $('sourceFile').value = ''; }
+    const result = await readDatasetFile(file);
+    if (epoch !== state.sourceEpoch) return;
+    state.sheets = result.sheets; const selected = result.sheets.findIndex(sheet => sheet.rows.length);
+    $('sourceSheet').replaceChildren(...result.sheets.map((sheet, i) => { const option = node('option', '', sheet.error ? `${sheet.name} — ${sheet.error}` : sheet.name); option.value = String(i); option.disabled = Boolean(sheet.error); return option; }));
+    $('sourceSheet').value = String(selected); $('sheetControl').classList.toggle('hidden', result.sheets.length < 2);
+    $('sourceImportNote').textContent = result.note;
+    state.rows = result.sheets[selected].rows; state.synthetic = false; state.sourceName = file.name; renderSource(); notice('Dataset loaded locally. Inspect constraints, then run an operation on its fields.');
+  } catch (error) { if (epoch !== state.sourceEpoch) return; state.rows = []; state.sourceName = 'Source rejected'; state.synthetic = false; renderSource(); throw error; }
+  finally { $('sourceFile').value = ''; $('sourceFile').disabled = false; }
+});
+on('sourceSheet', 'change', () => {
+  const sheet = state.sheets[Number($('sourceSheet').value)]; if (!sheet?.rows.length) throw new Error(sheet?.error || 'Choose a readable worksheet');
+  state.rows = sheet.rows; renderSource(); notice(`Using worksheet “${sheet.name}”. Previous operation results have been cleared.`);
 });
 on('exportDrafts', 'click', () => {
   if (!state.result) return;

@@ -1,5 +1,12 @@
 # Validation — 31 October 2026
 
+## Arbitrary dataset update
+
+- 28 unit/API tests now include arbitrary/Unicode column names, CSV/TSV/JSONL, partial schemas, field constraints, exact decimal calculations, mixed numeric rejection, grouping, sorting, filtering, cash-flow reconciliation, nested values and worksheet validation.
+- Four browser scenarios include successful financial CSV loading with missing-order-field notes, generic operations/export, source privacy checks, multi-sheet XLSX in a local browser worker, stale-result invalidation, and existing order workflows.
+- Generic dataset/source states pass automated axe checks and 390px/320px overflow checks. A narrow-screen hidden-file-input sizing issue found by the test was corrected.
+- The supplied 25-row financial file was checked locally without committing or transmitting it. It loads, its cash-flow totals reconcile, and only the unsupported reminder workflow is disabled.
+
 ## Passed locally
 
 - 19 unit/API tests (`npm test`).
