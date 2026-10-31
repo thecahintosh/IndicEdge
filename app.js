@@ -62,6 +62,8 @@ function applyPlan(value, origin) {
 }
 function invalidate() {
   state.result = null;
+  if ($('disclosureDialog').open) $('disclosureDialog').close();
+  state.pendingAI = null;
   $('resultsPanel').classList.add('hidden'); $('aiExplanation').classList.add('hidden');
   $('draftList').replaceChildren(); $('resultSummary').textContent = ''; $('resultFacts').replaceChildren(); $('aiExplanation').textContent = '';
   for (const id of ['stepUnderstand', 'stepMinimize', 'stepExecute', 'stepReview']) $(id).classList.remove('complete');
