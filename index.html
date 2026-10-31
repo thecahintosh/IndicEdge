@@ -1,0 +1,213 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+  <title>IndicEdge — AI Control Plane</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div id="authScreen" class="auth-screen">
+    <div class="auth-card">
+      <div class="brand">
+        <span class="brand-icon">IE</span>
+        <span>IndicEdge</span>
+      </div>
+
+      <p class="eyebrow">PRIVATE AI INFRASTRUCTURE</p>
+      <h1>Intelligence under control.</h1>
+      <p class="muted">
+        Sign in to your AI execution workspace.
+      </p>
+
+      <label>Email</label>
+      <input id="email" type="email"
+             placeholder="you@example.com">
+
+      <label>Password</label>
+      <input id="password" type="password"
+             placeholder="Your password">
+
+      <button id="loginBtn" class="primary">
+        Sign in
+      </button>
+
+      <button id="signupBtn" class="secondary">
+        Create account
+      </button>
+
+      <p id="authMessage" class="message"></p>
+    </div>
+  </div>
+
+  <div id="appScreen" class="app hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-icon">IE</span>
+        <span>IndicEdge</span>
+      </div>
+
+      <div class="sidebar-section">WORKSPACE</div>
+      <button class="nav active" data-view="overview">
+        Overview
+      </button>
+      <button class="nav" data-view="assistant">
+        AI Workspace
+      </button>
+      <button class="nav" data-view="history">
+        Execution History
+      </button>
+
+      <div class="sidebar-section">SYSTEM</div>
+      <div class="sidebar-note">
+        <strong>Active modules</strong>
+        <p>Supabase Auth</p>
+        <p>Drizzle PostgreSQL</p>
+        <p>WithPrune Gateway</p>
+      </div>
+
+      <div class="sidebar-bottom">
+        <p id="userEmail" class="muted"></p>
+        <button id="logoutBtn" class="secondary">
+          Sign out
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">INDICEDGE / CONTROL PLANE</p>
+          <h2 id="pageTitle">Overview</h2>
+        </div>
+        <span id="systemBadge" class="status">
+          Checking...
+        </span>
+      </header>
+
+      <section id="overviewView" class="view">
+        <div class="intro">
+          <h1>Welcome to IndicEdge.</h1>
+          <p class="muted">
+            Your privacy-first AI infrastructure workspace.
+          </p>
+        </div>
+
+        <div class="stats">
+          <div class="panel stat">
+            <span>Backend</span>
+            <strong id="apiStatus">Checking</strong>
+          </div>
+          <div class="panel stat">
+            <span>Database</span>
+            <strong id="dbStatus">Checking</strong>
+          </div>
+          <div class="panel stat">
+            <span>WithPrune</span>
+            <strong id="pruneStatus">Checking</strong>
+          </div>
+          <div class="panel stat">
+            <span>GPU</span>
+            <strong id="gpuStatus">Checking</strong>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Current build</h3>
+          <p class="muted">
+            Phase 1: authentication, database,
+            and WithPrune integration.
+          </p>
+          <div class="tags">
+            <span>Node.js</span>
+            <span>Docker</span>
+            <span>Supabase</span>
+            <span>Drizzle</span>
+            <span>WithPrune</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Upcoming capabilities</h3>
+          <p class="muted">
+            Need2Know, document retrieval, reusable
+            workflows, Sarvam speech processing,
+            and CUDA inference.
+          </p>
+        </div>
+      </section>
+
+      <section id="assistantView" class="view hidden">
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h3>AI Workspace</h3>
+              <p class="muted">
+                All LLM calls are routed through WithPrune.
+              </p>
+            </div>
+            <span class="pill">Prune only</span>
+          </div>
+
+          <textarea id="promptInput" rows="6"
+            maxlength="4000"
+            placeholder="Describe your request in English, Hindi, or another supported language..."></textarea>
+
+          <div class="action-row">
+            <small id="characterCount">0 / 4000</small>
+            <button id="sendBtn" class="primary">
+              Execute request
+            </button>
+          </div>
+
+          <p id="requestMessage" class="message"></p>
+        </div>
+
+        <div id="resultPanel" class="panel hidden">
+          <h3>Model response</h3>
+          <div id="answerOutput" class="answer"></div>
+
+          <div class="result-details">
+            <div>
+              <span>Model</span>
+              <strong id="modelOutput">—</strong>
+            </div>
+            <div>
+              <span>Latency</span>
+              <strong id="latencyOutput">—</strong>
+            </div>
+          </div>
+
+          <h4>WithPrune receipt metadata</h4>
+          <pre id="receiptOutput"></pre>
+        </div>
+      </section>
+
+      <section id="historyView" class="view hidden">
+        <div class="panel">
+          <div class="section-header">
+            <div>
+              <h3>Execution History</h3>
+              <p class="muted">
+                Stored in Supabase PostgreSQL.
+              </p>
+            </div>
+            <button id="refreshHistory"
+                    class="secondary">
+              Refresh
+            </button>
+          </div>
+
+          <div id="historyList" class="history-list">
+            No history loaded.
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
